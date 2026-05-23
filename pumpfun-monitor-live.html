@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PUMP.FUN MONITOR LIVE</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050810;
+    --bg2: #080d1a;
+    --panel: #0b1120;
+    --border: #1a2540;
+    --green: #00ff88;
+    --red: #ff3366;
+    --yellow: #ffd700;
+    --cyan: #00e5ff;
+    --orange: #ff6b2b;
+    --text: #c8d8f0;
+    --muted: #4a6080;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,136,0.012) 2px, rgba(0,255,136,0.012) 4px);
+    pointer-events:none; z-index:9999;
+  }
+
+  /* HEADER */
+  header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    position:sticky; top:0; z-index:100;
+  }
+  .logo {
+    font-family:'Bebas Neue',sans-serif; font-size:22px;
+    letter-spacing:4px; color:var(--green);
+    text-shadow: 0 0 20px rgba(0,255,136,0.5);
+  }
+  .logo span { color:var(--cyan); }
+  .status-pill {
+    display:flex; align-items:center; gap:6px;
+    background: var(--panel); border:1px solid var(--border);
+    padding: 5px 12px; border-radius:20px;
+    font-family:'Share Tech Mono',monospace; font-size:11px;
+  }
+  .dot {
+    width:7px; height:7px; border-radius:50%;
+    background: var(--muted);
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+  .dot.live { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 1.5s infinite; }
+  .dot.error { background: var(--red); box-shadow: 0 0 8px var(--red); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  #conn-label { color: var(--muted); transition: color 0.3s; }
+  #conn-label.live { color: var(--green); }
+  #conn-label.error { color: var(--red); }
+
+  /* ALERT BANNER */
+  #alert-banner {
+    display:none;
+    background: linear-gradient(90deg, #ff0040, #cc0030, #ff0040);
+    background-size:200%;
+    animation: bannerMove 2s linear infinite;
+    padding: 10px 16px;
+    font-family:'Bebas Neue',sans-serif; font-size:16px;
+    letter-spacing:3px; color:#fff; text-align:center;
+    border-bottom: 2px solid #ff6699;
+  }
+  @keyframes bannerMove { 0%{background-position:0%} 100%{background-position:200%} }
+
+  /* CONFIG BAR */
+  .config-bar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .config-label { font-size:11px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; white-space:nowrap; }
+  input[type="number"] {
+    background: var(--panel); border:1px solid var(--border);
+    color: var(--yellow); font-family:'Share Tech Mono',monospace;
+    font-size:15px; padding: 6px 10px; border-radius:4px;
+    width:110px; outline:none;
+  }
+  input:focus { border-color:var(--green); }
+  .btn {
+    background:transparent; border:1px solid var(--green);
+    color:var(--green); font-family:'Bebas Neue',sans-serif;
+    font-size:14px; letter-spacing:2px; padding: 6px 14px;
+    border-radius:4px; cursor:pointer; transition:all 0.2s;
+    white-space:nowrap;
+  }
+  .btn:hover { background:rgba(0,255,136,0.1); }
+  .btn.danger { border-color:var(--red); color:var(--red); }
+  .btn.danger:hover { background:rgba(255,51,102,0.1); }
+
+  /* STATS ROW */
+  .stats-row {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    border-bottom:1px solid var(--border);
+    background: var(--bg2);
+  }
+  .stat {
+    padding:8px 12px; border-right:1px solid var(--border);
+    display:flex; flex-direction:column;
+  }
+  .stat:last-child { border-right:none; }
+  .stat-v { font-family:'Bebas Neue',sans-serif; font-size:20px; color:var(--green); }
+  .stat-l { font-size:9px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; }
+
+  /* FEED */
+  #feed {
+    padding:10px;
+    display:flex; flex-direction:column; gap:8px;
+    overflow-y:auto;
+    max-height: calc(100vh - 230px);
+    padding-bottom:80px;
+  }
+  #feed::-webkit-scrollbar { width:3px; }
+  #feed::-webkit-scrollbar-thumb { background:var(--border); }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius:8px; padding:12px 14px;
+    display:grid; grid-template-columns:40px 1fr auto;
+    gap:10px; align-items:center;
+    animation: cardIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    cursor:pointer; transition: border-color 0.2s, transform 0.1s;
+    position:relative; overflow:hidden;
+  }
+  .card:hover { border-color:var(--cyan); transform:translateX(2px); }
+  .card.alert {
+    border-color:var(--red);
+    background: linear-gradient(135deg, var(--panel), rgba(255,51,102,0.07));
+    box-shadow: 0 0 18px rgba(255,51,102,0.12);
+  }
+  .card.alert::after {
+    content:'🚨';
+    position:absolute; top:8px; right:10px; font-size:14px;
+    animation: blink 0.8s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  @keyframes cardIn { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+
+  .icon {
+    width:40px; height:40px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px; border:1px solid var(--border); flex-shrink:0;
+  }
+  .info { min-width:0; }
+  .token-name {
+    font-family:'Bebas Neue',sans-serif; font-size:16px;
+    letter-spacing:2px; color:#fff;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .token-addr {
+    font-family:'Share Tech Mono',monospace; font-size:9px;
+    color:var(--muted); margin-top:1px;
+  }
+  .tags { display:flex; gap:4px; margin-top:4px; flex-wrap:wrap; }
+  .tag {
+    font-size:9px; padding:1px 6px; border-radius:3px;
+    font-family:'Share Tech Mono',monospace; letter-spacing:1px;
+  }
+  .tag-first { background:rgba(0,229,255,0.1); color:var(--cyan); border:1px solid rgba(0,229,255,0.25); }
+  .tag-buy   { background:rgba(0,255,136,0.1); color:var(--green); border:1px solid rgba(0,255,136,0.25); }
+  .tag-new   { background:rgba(255,107,43,0.1); color:var(--orange); border:1px solid rgba(255,107,43,0.25); }
+
+  .amount { text-align:right; flex-shrink:0; }
+  .amount-val { font-family:'Bebas Neue',sans-serif; font-size:20px; color:var(--green); }
+  .amount-val.big { color:var(--red); font-size:22px; text-shadow:0 0 10px rgba(255,51,102,0.4); }
+  .amount-sol { font-size:10px; color:var(--muted); font-family:'Share Tech Mono',monospace; }
+  .amount-time { font-size:9px; color:var(--muted); font-family:'Share Tech Mono',monospace; margin-top:1px; }
+
+  /* BOTTOM ALERT LOG */
+  .bottom-bar {
+    position:fixed; bottom:0; left:0; right:0;
+    background: var(--bg2); border-top:1px solid var(--border);
+    max-height:80px; overflow-y:auto; z-index:50;
+  }
+  #alert-log-mini { padding:6px 12px; display:flex; flex-direction:column; gap:4px; }
+  .alert-mini {
+    font-family:'Share Tech Mono',monospace; font-size:11px;
+    color:var(--red); display:flex; gap:10px; align-items:center;
+    animation: cardIn 0.3s ease;
+  }
+  .alert-mini a { color:var(--cyan); text-decoration:none; font-size:10px; }
+
+  .empty {
+    text-align:center; padding:40px 20px;
+    color:var(--muted); font-family:'Share Tech Mono',monospace;
+    font-size:12px; line-height:2.2;
+  }
+
+  /* MODAL */
+  #modal {
+    display:none; position:fixed; inset:0;
+    background:rgba(5,8,16,0.92); z-index:200;
+    align-items:center; justify-content:center;
+    padding:16px;
+  }
+  #modal.show { display:flex; }
+  .modal-box {
+    background:var(--panel); border:2px solid var(--red);
+    border-radius:10px; padding:24px; max-width:340px; width:100%;
+    box-shadow:0 0 40px rgba(255,51,102,0.3);
+    animation: cardIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .modal-title {
+    font-family:'Bebas Neue',sans-serif; font-size:26px;
+    letter-spacing:3px; color:var(--red); margin-bottom:8px;
+  }
+  .modal-amount {
+    font-family:'Bebas Neue',sans-serif; font-size:36px;
+    color:#fff; margin:8px 0;
+  }
+  .modal-detail { font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--muted); line-height:1.8; }
+  .modal-btn {
+    display:block; width:100%; margin-top:16px;
+    background:var(--red); color:#fff;
+    font-family:'Bebas Neue',sans-serif; font-size:18px;
+    letter-spacing:3px; padding:12px; border:none;
+    border-radius:6px; cursor:pointer; text-align:center;
+    text-decoration:none;
+  }
+  .modal-close {
+    margin-top:8px; background:transparent; color:var(--muted);
+    font-size:13px; border:1px solid var(--border);
+    width:100%; padding:8px; border-radius:4px; cursor:pointer;
+    font-family:'DM Sans',sans-serif;
+  }
+
+  @media (max-width:400px) {
+    .stats-row { grid-template-columns:repeat(2,1fr); }
+    .stat:nth-child(2) { border-right:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ALERT BANNER -->
+<div id="alert-banner"></div>
+
+<!-- MODAL ALERTE -->
+<div id="modal">
+  <div class="modal-box">
+    <div class="modal-title">🚨 ALERTE DÉTECTÉE</div>
+    <div id="modal-name" style="font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--cyan)"></div>
+    <div id="modal-amount" class="modal-amount"></div>
+    <div id="modal-detail" class="modal-detail"></div>
+    <a id="modal-link" class="modal-btn" target="_blank">→ VOIR SUR PUMP.FUN</a>
+    <button class="modal-close" onclick="closeModal()">Fermer</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">⚡ PUMP<span>.FUN</span></div>
+  <div class="status-pill">
+    <div class="dot" id="conn-dot"></div>
+    <span id="conn-label">DÉCONNECTÉ</span>
+  </div>
+</header>
+
+<!-- CONFIG -->
+<div class="config-bar">
+  <span class="config-label">Seuil $</span>
+  <input type="number" id="threshold" value="4000" min="100" step="100">
+  <button class="btn" id="btn-connect" onclick="connect()">▶ CONNECTER</button>
+  <button class="btn danger" id="btn-disconnect" onclick="disconnect()" style="display:none">■ STOP</button>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat">
+    <div class="stat-v" id="s-tokens">0</div>
+    <div class="stat-l">Tokens</div>
+  </div>
+  <div class="stat">
+    <div class="stat-v" id="s-alerts" style="color:var(--red)">0</div>
+    <div class="stat-l">Alertes</div>
+  </div>
+  <div class="stat">
+    <div class="stat-v" id="s-vol" style="color:var(--cyan);font-size:16px">$0</div>
+    <div class="stat-l">Volume</div>
+  </div>
+  <div class="stat">
+    <div class="stat-v" id="s-sol" style="color:var(--yellow);font-size:16px">$—</div>
+    <div class="stat-l">SOL/USD</div>
+  </div>
+</div>
+
+<!-- FEED -->
+<div id="feed">
+  <div class="empty" id="empty-state">
+    ⚡ APPUIE SUR CONNECTER<br>
+    POUR DÉMARRER LA SURVEILLANCE<br>
+    <span style="color:rgba(0,255,136,0.2)">━━━━━━━━━━━━━━━━━━━━</span><br>
+    <span style="font-size:10px">Données réelles via PumpPortal WebSocket</span>
+  </div>
+</div>
+
+<!-- BOTTOM ALERT LOG -->
+<div class="bottom-bar">
+  <div id="alert-log-mini"></div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let ws = null;
+let alertCount = 0, tokenCount = 0, totalVol = 0, biggestBuy = 0;
+let solPrice = 0;
+let connected = false;
+const EMOJIS = ['🐸','🚀','💎','🌙','🔥','⚡','🦊','🐋','🎯','💀','🌊','🍄','🦁','🐉','👾','🤖'];
+
+// ============================================================
+// UTILS
+// ============================================================
+function fmt(n) {
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(2) + 'M';
+  if (n >= 1000) return '$' + (n/1000).toFixed(1) + 'K';
+  return '$' + n.toFixed(0);
+}
+function fmtFull(n) { return '$' + Math.round(n).toLocaleString('fr-FR'); }
+function shortAddr(a) { return a ? a.slice(0,6) + '…' + a.slice(-4) : ''; }
+function now() { return new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+function emoji(seed) { let h=0; for(let c of (seed||'x')) h+=c.charCodeAt(0); return EMOJIS[h%EMOJIS.length]; }
+function iconBg(seed) {
+  const colors=['rgba(0,255,136,0.1)','rgba(0,229,255,0.1)','rgba(255,107,43,0.1)','rgba(255,215,0,0.1)','rgba(255,51,102,0.1)'];
+  let h=0; for(let c of (seed||'x')) h+=c.charCodeAt(0); return colors[h%colors.length];
+}
+function getThreshold() { return parseFloat(document.getElementById('threshold').value) || 4000; }
+
+// ============================================================
+// SOL PRICE (CoinGecko public)
+// ============================================================
+async function fetchSolPrice() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+    const d = await r.json();
+    solPrice = d?.solana?.usd || 0;
+    document.getElementById('s-sol').textContent = solPrice ? '$' + solPrice.toFixed(2) : '$—';
+  } catch(e) { solPrice = 0; }
+}
+fetchSolPrice();
+setInterval(fetchSolPrice, 30000);
+
+// ============================================================
+// WEBSOCKET — PumpPortal
+// API DOCS: https://pumpportal.fun/api/data
+// ============================================================
+function connect() {
+  if (ws) ws.close();
+  setStatus('connecting', 'CONNEXION…');
+
+  ws = new WebSocket('wss://pumpportal.fun/api/data');
+
+  ws.onopen = () => {
+    connected = true;
+    setStatus('live', 'LIVE');
+
+    // Subscribe to new token creations
+    ws.send(JSON.stringify({ method: 'subscribeNewToken' }));
+
+    // Subscribe to all trades on new tokens
+    // (filtered client-side by threshold)
+    document.getElementById('btn-connect').style.display = 'none';
+    document.getElementById('btn-disconnect').style.display = '';
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      handleEvent(data);
+    } catch(e) {}
+  };
+
+  ws.onerror = () => { setStatus('error', 'ERREUR'); };
+
+  ws.onclose = () => {
+    connected = false;
+    setStatus('off', 'DÉCONNECTÉ');
+    document.getElementById('btn-connect').style.display = '';
+    document.getElementById('btn-disconnect').style.display = 'none';
+    // Auto-reconnect after 5s
+    if (connected) setTimeout(connect, 5000);
+  };
+}
+
+function disconnect() {
+  connected = false;
+  if (ws) { ws.close(); ws = null; }
+  setStatus('off', 'DÉCONNECTÉ');
+  document.getElementById('btn-connect').style.display = '';
+  document.getElementById('btn-disconnect').style.display = 'none';
+}
+
+function setStatus(state, label) {
+  const dot = document.getElementById('conn-dot');
+  const lbl = document.getElementById('conn-label');
+  dot.className = 'dot ' + (state === 'live' ? 'live' : state === 'error' ? 'error' : '');
+  lbl.className = state === 'live' ? 'live' : state === 'error' ? 'error' : '';
+  lbl.textContent = label;
+}
+
+// ============================================================
+// EVENT HANDLER
+// PumpPortal payload fields:
+//   signature, mint, traderPublicKey, txType (buy/sell/create),
+//   tokenAmount, solAmount, newTokenCreated, bondingCurveKey,
+//   name, symbol, uri, marketCapSol, initialBuy
+// ============================================================
+function handleEvent(data) {
+  // New token creation event
+  if (data.txType === 'create' || data.newTokenCreated) {
+    const usdAmount = (data.solAmount || data.initialBuy || 0) * (solPrice || 145);
+    const threshold = getThreshold();
+    const isAlert = usdAmount >= threshold;
+
+    addCard({
+      name: data.symbol || data.name || 'TOKEN',
+      addr: data.mint || '',
+      solAmt: data.solAmount || data.initialBuy || 0,
+      usdAmt: usdAmount,
+      isFirst: true,
+      isAlert,
+      time: now()
+    });
+
+    updateStats(usdAmount);
+    if (isAlert) triggerAlert(data.symbol || data.name || 'TOKEN', data.mint, usdAmount, data.solAmount || 0);
+
+    // Subscribe to trades on this specific token
+    if (data.mint && ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({
+        method: 'subscribeTokenTrade',
+        keys: [data.mint]
+      }));
+    }
+    return;
+  }
+
+  // Trade event (buy/sell on existing token)
+  if (data.txType === 'buy') {
+    const usdAmount = (data.solAmount || 0) * (solPrice || 145);
+    const threshold = getThreshold();
+    const isAlert = usdAmount >= threshold;
+
+    addCard({
+      name: data.symbol || shortAddr(data.mint) || 'TOKEN',
+      addr: data.mint || '',
+      solAmt: data.solAmount || 0,
+      usdAmt: usdAmount,
+      isFirst: false,
+      isAlert,
+      time: now()
+    });
+
+    updateStats(usdAmount);
+    if (isAlert) triggerAlert(data.symbol || 'TOKEN', data.mint, usdAmount, data.solAmount || 0);
+  }
+}
+
+// ============================================================
+// ADD CARD
+// ============================================================
+function addCard({ name, addr, solAmt, usdAmt, isFirst, isAlert, time }) {
+  const feed = document.getElementById('feed');
+  document.getElementById('empty-state')?.remove();
+
+  const card = document.createElement('div');
+  card.className = 'card' + (isAlert ? ' alert' : '');
+  card.dataset.mint = addr;
+
+  const em = emoji(addr);
+  const bg = iconBg(addr);
+  const amtClass = isAlert ? 'amount-val big' : 'amount-val';
+
+  card.innerHTML = `
+    <div class="icon" style="background:${bg}">${em}</div>
+    <div class="info">
+      <div class="token-name">${name}</div>
+      <div class="token-addr">${shortAddr(addr)}</div>
+      <div class="tags">
+        ${isFirst ? '<span class="tag tag-first">1er ACHAT</span>' : ''}
+        <span class="tag tag-buy">BUY</span>
+        ${isFirst ? '<span class="tag tag-new">NEW</span>' : ''}
+      </div>
+    </div>
+    <div class="amount">
+      <div class="${amtClass}">${fmt(usdAmt)}</div>
+      <div class="amount-sol">${solAmt.toFixed(2)} SOL</div>
+      <div class="amount-time">${time}</div>
+    </div>
+  `;
+
+  card.addEventListener('click', () => {
+    if (isAlert) showModal(name, addr, usdAmt, solAmt);
+    else window.open('https://pump.fun/' + addr, '_blank');
+  });
+
+  feed.insertBefore(card, feed.firstChild);
+
+  // Keep max 80 cards
+  const cards = feed.querySelectorAll('.card');
+  if (cards.length > 80) cards[cards.length - 1].remove();
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats(usdAmt) {
+  tokenCount++;
+  totalVol += usdAmt;
+  if (usdAmt > biggestBuy) biggestBuy = usdAmt;
+  document.getElementById('s-tokens').textContent = tokenCount;
+  document.getElementById('s-vol').textContent = fmt(totalVol);
+}
+
+// ============================================================
+// ALERT
+// ============================================================
+function triggerAlert(name, addr, usdAmt, solAmt) {
+  alertCount++;
+  document.getElementById('s-alerts').textContent = alertCount;
+
+  // Banner
+  const banner = document.getElementById('alert-banner');
+  banner.textContent = `🚨 ${name} — PREMIER ACHAT ${fmtFull(usdAmt)} — TOUCHE POUR VOIR 🚨`;
+  banner.style.display = 'block';
+  setTimeout(() => banner.style.display = 'none', 6000);
+
+  // Sound
+  playSound();
+
+  // Mini log
+  addMiniLog(name, addr, usdAmt);
+
+  // Show modal
+  showModal(name, addr, usdAmt, solAmt);
+}
+
+function addMiniLog(name, addr, usdAmt) {
+  const log = document.getElementById('alert-log-mini');
+  const item = document.createElement('div');
+  item.className = 'alert-mini';
+  item.innerHTML = `
+    <span>🚨 ${name}</span>
+    <span style="color:#fff">${fmtFull(usdAmt)}</span>
+    <a href="https://pump.fun/${addr}" target="_blank">VOIR →</a>
+    <span style="margin-left:auto">${now()}</span>
+  `;
+  log.insertBefore(item, log.firstChild);
+  const items = log.querySelectorAll('.alert-mini');
+  if (items.length > 5) items[items.length - 1].remove();
+}
+
+function showModal(name, addr, usdAmt, solAmt) {
+  document.getElementById('modal-name').textContent = shortAddr(addr);
+  document.getElementById('modal-amount').textContent = fmtFull(usdAmt);
+  document.getElementById('modal-detail').innerHTML =
+    `${solAmt.toFixed(2)} SOL • Premier achat détecté<br>${shortAddr(addr)}<br>${now()}`;
+  document.getElementById('modal-link').href = 'https://pump.fun/' + addr;
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+function playSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [[880,0],[1100,0.1],[1320,0.2],[880,0.3]].forEach(([f,t]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = f; o.type = 'square';
+      g.gain.setValueAtTime(0.12, ctx.currentTime + t);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.09);
+      o.start(ctx.currentTime + t);
+      o.stop(ctx.currentTime + t + 0.09);
+    });
+  } catch(e) {}
+}
+
+// Close modal on outside click
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
