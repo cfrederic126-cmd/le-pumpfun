@@ -700,11 +700,11 @@ function addCard(data) {
         <div class="amount-time">${time}</div>
       </div>
     </div>
-    ${renderBubbleViz(analysis)}
-    <div class="card-actions">
-      <a class="action-btn action-pump" href="https://pump.fun/${mint}" target="_blank">→ PUMP.FUN</a>
-      <button class="action-btn action-ignore" onclick="this.closest('.card').remove()">✕ IGNORER</button>
+    <div style="display:flex;gap:6px;margin-top:8px;">
+      <a href="https://pump.fun/${mint}" target="_blank" style="flex:1;display:block;text-align:center;padding:9px;background:rgba(0,221,255,0.12);border:1px solid rgba(0,221,255,0.3);border-radius:6px;color:var(--cyan);font-family:'Orbitron',monospace;font-size:11px;letter-spacing:1px;text-decoration:none;font-weight:700;">→ PUMP.FUN</a>
+      <button onclick="this.closest('.card').remove()" style="flex:1;padding:9px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Orbitron',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">✕ IGNORER</button>
     </div>
+    ${renderBubbleViz(analysis)}
   `;
 
   feed.insertBefore(card, feed.firstChild);
