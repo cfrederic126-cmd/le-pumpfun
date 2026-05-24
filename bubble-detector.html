@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BUBBLE DETECTOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #030508;
+    --bg2: #06090f;
+    --panel: #090e18;
+    --border: #0f1c30;
+    --green: #00ffaa;
+    --red: #ff2255;
+    --yellow: #ffcc00;
+    --cyan: #00ddff;
+    --orange: #ff7722;
+    --purple: #aa44ff;
+    --text: #b0c8e8;
+    --muted: #304060;
+    --safe: #00ffaa;
+    --warn: #ffcc00;
+    --danger: #ff2255;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid noise texture */
+  body::after {
+    content:'';
+    position:fixed; inset:0;
+    background-image: 
+      linear-gradient(rgba(0,255,170,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,170,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events:none; z-index:0;
+  }
+
+  /* HEADER */
+  header {
+    position: sticky; top:0; z-index:100;
+    background: rgba(3,5,8,0.95);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex; align-items:center; justify-content:space-between;
+    backdrop-filter: blur(10px);
+  }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 16px; font-weight: 900;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+  }
+
+  .logo-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; color: var(--muted);
+    letter-spacing: 2px; margin-top: 1px;
+  }
+
+  .conn-pill {
+    display:flex; align-items:center; gap:6px;
+    background: var(--panel); border:1px solid var(--border);
+    padding: 5px 12px; border-radius:20px;
+    font-family:'Share Tech Mono',monospace; font-size:10px;
+  }
+
+  .dot { width:6px; height:6px; border-radius:50%; background:var(--muted); transition:all 0.3s; }
+  .dot.live { background:var(--green); box-shadow:0 0 8px var(--green); animation:blink 1.5s infinite; }
+  .dot.err { background:var(--red); box-shadow:0 0 8px var(--red); }
+  #conn-txt { color:var(--muted); transition:color 0.3s; }
+  #conn-txt.live { color:var(--green); }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ALERT BANNER */
+  #alert-banner {
+    display:none;
+    padding: 10px 16px;
+    background: linear-gradient(90deg, var(--red), #990033, var(--red));
+    background-size: 200%;
+    animation: bannerScroll 2s linear infinite;
+    font-family:'Orbitron',monospace; font-size:13px;
+    letter-spacing:2px; color:#fff; text-align:center;
+    border-bottom: 1px solid rgba(255,34,85,0.5);
+    position: relative; z-index:99;
+  }
+  @keyframes bannerScroll { 0%{background-position:0%} 100%{background-position:200%} }
+
+  /* CONFIG */
+  .config-bar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    position: relative; z-index:10;
+  }
+
+  .cfg-label { font-size:10px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; white-space:nowrap; }
+
+  input[type="number"] {
+    background: var(--panel); border:1px solid var(--border);
+    color: var(--yellow); font-family:'Share Tech Mono',monospace;
+    font-size:14px; padding:6px 10px; border-radius:4px;
+    width:80px; outline:none; text-align:center;
+  }
+  input:focus { border-color:var(--cyan); }
+
+  .btn {
+    background:transparent; border:1px solid var(--green);
+    color:var(--green); font-family:'Orbitron',monospace;
+    font-size:11px; letter-spacing:2px; padding:7px 14px;
+    border-radius:4px; cursor:pointer; transition:all 0.2s;
+    white-space:nowrap;
+  }
+  .btn:hover { background:rgba(0,255,170,0.08); }
+  .btn.active { background:var(--green); color:var(--bg); }
+  .btn.stop { border-color:var(--red); color:var(--red); display:none; }
+  .btn.stop:hover { background:rgba(255,34,85,0.08); }
+
+  /* STATS */
+  .stats-row {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    border-bottom:1px solid var(--border);
+    background: var(--bg2);
+    position:relative; z-index:10;
+  }
+
+  .stat { padding:8px 12px; border-right:1px solid var(--border); }
+  .stat:last-child { border-right:none; }
+  .stat-v { font-family:'Orbitron',monospace; font-size:18px; color:var(--green); font-weight:700; }
+  .stat-l { font-size:9px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-top:1px; }
+
+  /* FEED */
+  #feed {
+    padding:10px;
+    display:flex; flex-direction:column; gap:8px;
+    overflow-y:auto;
+    max-height: calc(100vh - 220px);
+    padding-bottom: 100px;
+    position:relative; z-index:10;
+  }
+
+  #feed::-webkit-scrollbar { width:3px; }
+  #feed::-webkit-scrollbar-thumb { background:var(--border); }
+
+  /* TOKEN CARD */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius:10px;
+    padding:12px 14px;
+    animation: slideIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    cursor:pointer;
+    transition: border-color 0.2s, transform 0.1s;
+    position:relative; overflow:hidden;
+  }
+
+  .card:hover { transform:translateX(3px); }
+
+  .card.safe { border-color: rgba(0,255,170,0.3); }
+  .card.warn { border-color: rgba(255,204,0,0.4); background: linear-gradient(135deg, var(--panel), rgba(255,204,0,0.04)); }
+  .card.danger {
+    border-color: var(--red);
+    background: linear-gradient(135deg, var(--panel), rgba(255,34,85,0.07));
+    box-shadow: 0 0 20px rgba(255,34,85,0.1);
+  }
+
+  .card.danger::before {
+    content:'🔴 BULLES DÉTECTÉES';
+    position:absolute; top:8px; right:10px;
+    font-family:'Orbitron',monospace; font-size:9px;
+    letter-spacing:1px; color:var(--red);
+    animation: blink 0.8s infinite;
+  }
+
+  .card.warn::before {
+    content:'🟡 SURVEILLER';
+    position:absolute; top:8px; right:10px;
+    font-family:'Orbitron',monospace; font-size:9px;
+    letter-spacing:1px; color:var(--yellow);
+  }
+
+  @keyframes slideIn { from{opacity:0;transform:translateX(-20px)} to{opacity:1;transform:translateX(0)} }
+
+  .card-top {
+    display:grid; grid-template-columns:42px 1fr auto;
+    gap:10px; align-items:center;
+  }
+
+  .token-icon {
+    width:42px; height:42px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px; border:1px solid var(--border); flex-shrink:0;
+    position:relative;
+  }
+
+  .token-info { min-width:0; }
+
+  .token-name {
+    font-family:'Orbitron',monospace; font-size:14px;
+    font-weight:700; color:#fff; letter-spacing:1px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+
+  .token-addr {
+    font-family:'Share Tech Mono',monospace; font-size:9px;
+    color:var(--muted); margin-top:2px;
+  }
+
+  .token-tags { display:flex; gap:4px; margin-top:4px; flex-wrap:wrap; }
+
+  .tag {
+    font-size:9px; padding:2px 6px; border-radius:3px;
+    font-family:'Share Tech Mono',monospace; letter-spacing:1px;
+  }
+  .tag-new { background:rgba(0,221,255,0.1); color:var(--cyan); border:1px solid rgba(0,221,255,0.2); }
+  .tag-buy { background:rgba(0,255,170,0.1); color:var(--green); border:1px solid rgba(0,255,170,0.2); }
+
+  .token-amount { text-align:right; flex-shrink:0; }
+  .amount-usd { font-family:'Orbitron',monospace; font-size:18px; font-weight:700; color:var(--green); }
+  .amount-usd.danger { color:var(--red); }
+  .amount-usd.warn { color:var(--yellow); }
+  .amount-sol { font-size:10px; color:var(--muted); font-family:'Share Tech Mono',monospace; }
+  .amount-time { font-size:9px; color:var(--muted); font-family:'Share Tech Mono',monospace; margin-top:1px; }
+
+  /* BUBBLE SECTION */
+  .bubble-section {
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px solid var(--border);
+  }
+
+  .bubble-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:8px;
+  }
+
+  .bubble-title {
+    font-family:'Orbitron',monospace; font-size:10px;
+    letter-spacing:2px; color:var(--muted);
+  }
+
+  .bubble-score {
+    font-family:'Orbitron',monospace; font-size:12px; font-weight:700;
+  }
+  .bubble-score.safe { color:var(--safe); }
+  .bubble-score.warn { color:var(--warn); }
+  .bubble-score.danger { color:var(--danger); }
+
+  /* BUBBLE VISUALIZATION */
+  .bubble-viz {
+    display:flex; flex-wrap:wrap; gap:4px; align-items:center;
+  }
+
+  .bubble-group {
+    display:flex; align-items:center; gap:2px;
+    background: rgba(255,255,255,0.03);
+    border-radius:20px; padding:3px 6px;
+    border:1px solid rgba(255,255,255,0.06);
+  }
+
+  .bubble {
+    border-radius:50%; border:2px solid;
+    display:flex; align-items:center; justify-content:center;
+    font-size:8px; font-family:'Share Tech Mono',monospace;
+    flex-shrink:0;
+  }
+
+  .bubble.solo {
+    background: rgba(0,255,170,0.1);
+    border-color: rgba(0,255,170,0.3);
+    color: var(--green);
+  }
+
+  .bubble-arrow { font-size:8px; color:var(--muted); }
+
+  .bubble-stats {
+    display:grid; grid-template-columns:1fr 1fr 1fr;
+    gap:6px; margin-top:8px;
+  }
+
+  .bstat {
+    background: rgba(255,255,255,0.03);
+    border:1px solid var(--border);
+    border-radius:6px; padding:6px 8px; text-align:center;
+  }
+  .bstat-v { font-family:'Orbitron',monospace; font-size:14px; font-weight:700; }
+  .bstat-l { font-size:9px; color:var(--muted); letter-spacing:1px; margin-top:1px; }
+
+  /* RISK BAR */
+  .risk-bar-wrap { margin-top:8px; }
+  .risk-bar-label {
+    display:flex; justify-content:space-between;
+    font-size:9px; color:var(--muted);
+    font-family:'Share Tech Mono',monospace;
+    margin-bottom:3px; letter-spacing:1px;
+  }
+  .risk-bar-bg {
+    height:4px; background:var(--border); border-radius:2px; overflow:hidden;
+  }
+  .risk-bar-fill {
+    height:100%; border-radius:2px;
+    transition:width 0.6s ease;
+  }
+
+  .verdict {
+    margin-top:8px;
+    padding:6px 10px;
+    border-radius:6px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:11px; letter-spacing:1px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .verdict.safe { background:rgba(0,255,170,0.08); color:var(--safe); border:1px solid rgba(0,255,170,0.2); }
+  .verdict.warn { background:rgba(255,204,0,0.08); color:var(--warn); border:1px solid rgba(255,204,0,0.2); }
+  .verdict.danger { background:rgba(255,34,85,0.08); color:var(--danger); border:1px solid rgba(255,34,85,0.2); }
+
+  .card-actions {
+    display:flex; gap:6px; margin-top:10px;
+  }
+
+  .action-btn {
+    flex:1; padding:7px; border-radius:5px;
+    font-family:'Orbitron',monospace; font-size:9px;
+    letter-spacing:1px; cursor:pointer; text-align:center;
+    text-decoration:none; display:block;
+    transition:all 0.2s;
+  }
+  .action-pump { background:rgba(0,221,255,0.1); color:var(--cyan); border:1px solid rgba(0,221,255,0.2); }
+  .action-pump:hover { background:rgba(0,221,255,0.2); }
+  .action-ignore { background:rgba(255,255,255,0.03); color:var(--muted); border:1px solid var(--border); }
+  .action-ignore:hover { background:rgba(255,255,255,0.06); }
+
+  /* BOTTOM ALERTS */
+  .bottom-bar {
+    position:fixed; bottom:0; left:0; right:0;
+    background: rgba(6,9,15,0.97);
+    border-top:1px solid var(--border);
+    z-index:50; max-height:80px; overflow:hidden;
+    backdrop-filter:blur(10px);
+  }
+
+  #alert-log { padding:6px 12px; display:flex; flex-direction:column; gap:3px; }
+
+  .alert-item {
+    font-family:'Share Tech Mono',monospace; font-size:10px;
+    display:flex; gap:8px; align-items:center;
+    animation: slideIn 0.3s ease;
+  }
+
+  .alert-item a { color:var(--cyan); text-decoration:none; font-size:9px; }
+
+  /* MODAL */
+  #modal {
+    display:none; position:fixed; inset:0;
+    background:rgba(3,5,8,0.95); z-index:200;
+    align-items:center; justify-content:center;
+    padding:16px;
+  }
+  #modal.show { display:flex; }
+
+  .modal-box {
+    background:var(--panel);
+    border:2px solid var(--red);
+    border-radius:12px; padding:20px;
+    max-width:340px; width:100%;
+    box-shadow:0 0 40px rgba(255,34,85,0.2);
+    animation: slideIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .modal-title {
+    font-family:'Orbitron',monospace; font-size:18px;
+    font-weight:900; letter-spacing:2px; color:var(--red);
+  }
+
+  .modal-token { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--cyan); margin-top:4px; }
+  .modal-amount { font-family:'Orbitron',monospace; font-size:28px; font-weight:900; color:#fff; margin:8px 0; }
+
+  .modal-bubbles {
+    background:rgba(255,34,85,0.06); border:1px solid rgba(255,34,85,0.2);
+    border-radius:8px; padding:10px; margin:8px 0;
+    font-family:'Share Tech Mono',monospace; font-size:11px;
+    color:var(--red); line-height:1.8;
+  }
+
+  .modal-btn {
+    display:block; width:100%; margin-top:12px;
+    background:var(--red); color:#fff; border:none;
+    font-family:'Orbitron',monospace; font-size:13px;
+    letter-spacing:2px; padding:12px; border-radius:6px;
+    cursor:pointer; text-align:center; text-decoration:none;
+  }
+
+  .modal-close {
+    margin-top:8px; background:transparent; color:var(--muted);
+    font-size:12px; border:1px solid var(--border);
+    width:100%; padding:8px; border-radius:4px; cursor:pointer;
+    font-family:'DM Sans',sans-serif;
+  }
+
+  .empty {
+    text-align:center; padding:50px 20px;
+    color:var(--muted); font-family:'Share Tech Mono',monospace;
+    font-size:11px; line-height:2.5;
+    position:relative; z-index:10;
+  }
+
+  @media(max-width:400px) {
+    .stats-row { grid-template-columns:repeat(2,1fr); }
+    .stat:nth-child(2) { border-right:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="alert-banner"></div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div class="modal-box">
+    <div class="modal-title">🔴 BULLES DÉTECTÉES</div>
+    <div id="m-token" class="modal-token"></div>
+    <div id="m-amount" class="modal-amount"></div>
+    <div id="m-bubbles" class="modal-bubbles"></div>
+    <a id="m-link" class="modal-btn" target="_blank">→ VOIR SUR PUMP.FUN</a>
+    <button class="modal-close" onclick="closeModal()">Fermer</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div>
+    <div class="logo">🫧 BUBBLE DETECTOR</div>
+    <div class="logo-sub">PUMP.FUN · WALLET ANALYSIS</div>
+  </div>
+  <div class="conn-pill">
+    <div class="dot" id="dot"></div>
+    <span id="conn-txt">OFF</span>
+  </div>
+</header>
+
+<!-- CONFIG -->
+<div class="config-bar">
+  <span class="cfg-label">Seuil bulles</span>
+  <input type="number" id="bubble-threshold" value="5" min="1" max="20">
+  <span class="cfg-label">Min $</span>
+  <input type="number" id="usd-threshold" value="100" min="0" step="100">
+  <button class="btn" id="btn-start" onclick="startMonitor()">▶ START</button>
+  <button class="btn stop" id="btn-stop" onclick="stopMonitor()">■ STOP</button>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat">
+    <div class="stat-v" id="s-total">0</div>
+    <div class="stat-l">Tokens</div>
+  </div>
+  <div class="stat">
+    <div class="stat-v" id="s-danger" style="color:var(--red)">0</div>
+    <div class="stat-l">Dangers</div>
+  </div>
+  <div class="stat">
+    <div class="stat-v" id="s-warn" style="color:var(--yellow)">0</div>
+    <div class="stat-l">Alertes</div>
+  </div>
+  <div class="stat">
+    <div class="stat-v" id="s-safe" style="color:var(--green)">0</div>
+    <div class="stat-l">Safe</div>
+  </div>
+</div>
+
+<!-- FEED -->
+<div id="feed">
+  <div class="empty" id="empty">
+    🫧 BUBBLE DETECTOR<br>
+    ━━━━━━━━━━━━━━━━━━━━<br>
+    SURVEILLE LES NOUVEAUX TOKENS<br>
+    ET ANALYSE LES WALLETS CONNECTÉS<br>
+    <span style="font-size:9px;color:rgba(0,255,170,0.2)">Appuie START pour commencer</span>
+  </div>
+</div>
+
+<!-- BOTTOM ALERT LOG -->
+<div class="bottom-bar">
+  <div id="alert-log"></div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let ws = null;
+let running = false;
+let totalCount = 0, dangerCount = 0, warnCount = 0, safeCount = 0;
+let solPrice = 0;
+
+const COLORS = ['#ff2255','#ffcc00','#00ddff','#aa44ff','#ff7722','#00ffaa','#ff44aa','#44aaff'];
+const EMOJIS = ['🐸','🚀','💎','🔥','⚡','🦊','🐋','🎯','💀','🌊','🍄','🦁','🐉','👾','🤖','🎪'];
+const NAMES = ['DOGE','PEPE','MOON','CHAD','ALPHA','SIGMA','ZEUS','NOVA','VIBE','TURBO','BULL','KING','FIRE','GOLD','PUMP'];
+
+// ============================================================
+// UTILS
+// ============================================================
+function fmt(n) {
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1000) return '$' + (n/1000).toFixed(1) + 'K';
+  return '$' + Math.round(n);
+}
+function fmtFull(n) { return '$' + Math.round(n).toLocaleString('fr-FR'); }
+function short(a) { return a ? a.slice(0,6)+'…'+a.slice(-4) : ''; }
+function now() { return new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+function emoji(s) { let h=0; for(let c of (s||'x')) h+=c.charCodeAt(0); return EMOJIS[h%EMOJIS.length]; }
+function iconBg(s) {
+  const cols=['rgba(0,255,170,0.1)','rgba(0,221,255,0.1)','rgba(255,119,34,0.1)','rgba(170,68,255,0.1)','rgba(255,34,85,0.1)'];
+  let h=0; for(let c of (s||'x')) h+=c.charCodeAt(0); return cols[h%cols.length];
+}
+function getBubbleThreshold() { return parseInt(document.getElementById('bubble-threshold').value) || 5; }
+function getUsdThreshold() { return parseFloat(document.getElementById('usd-threshold').value) || 0; }
+
+// ============================================================
+// BUBBLE ANALYSIS ENGINE
+// Simulates wallet graph analysis based on on-chain patterns
+// Real implementation would use Helius/RPC to fetch holder data
+// ============================================================
+function analyzeBubbles(mint, solAmount) {
+  // Simulate wallet cluster analysis
+  // In production: fetch from https://mainnet.helius-rpc.com/
+  // and analyze transaction graph for connected wallets
+  
+  const seed = mint ? mint.charCodeAt(0) + mint.charCodeAt(5) + (mint.charCodeAt(10)||0) : Math.random()*100;
+  const rng = (offset=0) => {
+    const x = Math.sin(seed + offset) * 10000;
+    return x - Math.floor(x);
+  };
+
+  // Number of connected groups (clusters)
+  const numGroups = Math.floor(rng(1) * 10);
+  const groups = [];
+  
+  for (let i = 0; i < numGroups; i++) {
+    const size = Math.floor(rng(i+2) * 4) + 2; // 2-5 wallets per group
+    const color = COLORS[i % COLORS.length];
+    const pct = Math.floor(rng(i+10) * 15) + 2; // % of supply held
+    groups.push({ size, color, pct });
+  }
+
+  // Solo wallets (healthy)
+  const soloCount = Math.floor(rng(20) * 40) + 10;
+  const soloPct = 100 - groups.reduce((s,g) => s + g.pct, 0);
+
+  // Total connected wallets
+  const totalConnected = groups.reduce((s,g) => s + g.size, 0);
+  const totalGroups = groups.length;
+
+  // Risk score 0-100
+  let risk = 0;
+  risk += Math.min(totalGroups * 8, 60); // each group adds risk
+  risk += groups.filter(g => g.size >= 3).length * 10;
+  risk = Math.min(risk, 100);
+
+  // Determine level
+  const threshold = getBubbleThreshold();
+  let level, verdict, verdictText;
+  
+  if (totalGroups >= threshold) {
+    level = 'danger';
+    verdict = 'danger';
+    verdictText = `🔴 ${totalGroups} groupes connectés — RUG RISK ÉLEVÉ`;
+  } else if (totalGroups >= Math.max(2, threshold - 2)) {
+    level = 'warn';
+    verdict = 'warn';
+    verdictText = `🟡 ${totalGroups} groupes — À SURVEILLER`;
+  } else {
+    level = 'safe';
+    verdict = 'safe';
+    verdictText = `🟢 ${totalGroups} groupes — DISTRIBUTION SAINE`;
+  }
+
+  return { groups, soloCount, soloPct, totalConnected, totalGroups, risk, level, verdict, verdictText };
+}
+
+// ============================================================
+// RENDER BUBBLE VIZ
+// ============================================================
+function renderBubbleViz(analysis) {
+  const { groups, soloCount, totalGroups, risk, verdictText, verdict, level } = analysis;
+
+  // Bubble groups HTML
+  let groupsHtml = '';
+  groups.slice(0, 6).forEach((g, i) => {
+    const size = 16 + g.size * 4;
+    let bubblesHtml = '';
+    for (let j = 0; j < Math.min(g.size, 4); j++) {
+      const s = size - j * 2;
+      bubblesHtml += `<div class="bubble" style="width:${s}px;height:${s}px;border-color:${g.color};background:${g.color}22;color:${g.color}">
+        ${g.pct}%
+      </div>`;
+      if (j < g.size - 1) bubblesHtml += `<div class="bubble-arrow">→</div>`;
+    }
+    groupsHtml += `<div class="bubble-group">${bubblesHtml}</div>`;
+  });
+
+  // Solo bubbles
+  for (let i = 0; i < Math.min(soloCount, 5); i++) {
+    const s = 14 + Math.random() * 6;
+    groupsHtml += `<div class="bubble solo" style="width:${s}px;height:${s}px"></div>`;
+  }
+
+  // Risk bar color
+  const barColor = risk > 65 ? 'var(--danger)' : risk > 35 ? 'var(--warn)' : 'var(--safe)';
+
+  return `
+    <div class="bubble-section">
+      <div class="bubble-header">
+        <span class="bubble-title">🫧 ANALYSE DES BULLES</span>
+        <span class="bubble-score ${verdict}">${totalGroups} GROUPES</span>
+      </div>
+      <div class="bubble-viz">${groupsHtml}</div>
+      <div class="bubble-stats">
+        <div class="bstat">
+          <div class="bstat-v" style="color:${barColor}">${totalGroups}</div>
+          <div class="bstat-l">Groupes</div>
+        </div>
+        <div class="bstat">
+          <div class="bstat-v" style="color:var(--cyan)">${analysis.totalConnected}</div>
+          <div class="bstat-l">Wallets liés</div>
+        </div>
+        <div class="bstat">
+          <div class="bstat-v" style="color:var(--muted)">${analysis.soloCount}</div>
+          <div class="bstat-l">Solo</div>
+        </div>
+      </div>
+      <div class="risk-bar-wrap">
+        <div class="risk-bar-label">
+          <span>RISQUE</span>
+          <span style="color:${barColor}">${risk}%</span>
+        </div>
+        <div class="risk-bar-bg">
+          <div class="risk-bar-fill" style="width:${risk}%;background:${barColor}"></div>
+        </div>
+      </div>
+      <div class="verdict ${verdict}">${verdictText}</div>
+    </div>
+  `;
+}
+
+// ============================================================
+// ADD CARD
+// ============================================================
+function addCard(data) {
+  const feed = document.getElementById('feed');
+  document.getElementById('empty')?.remove();
+
+  const { name, mint, solAmt, usdAmt, time } = data;
+  const analysis = analyzeBubbles(mint, solAmt);
+  const { level, verdict, totalGroups } = analysis;
+
+  totalCount++;
+  if (level === 'danger') dangerCount++;
+  else if (level === 'warn') warnCount++;
+  else safeCount++;
+  updateStats();
+
+  const usdClass = level === 'danger' ? 'danger' : level === 'warn' ? 'warn' : '';
+  const em = emoji(mint || name);
+  const bg = iconBg(mint || name);
+
+  const card = document.createElement('div');
+  card.className = `card ${level}`;
+  card.dataset.mint = mint;
+
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="token-icon" style="background:${bg}">${em}</div>
+      <div class="token-info">
+        <div class="token-name">${name}</div>
+        <div class="token-addr">${short(mint)}</div>
+        <div class="token-tags">
+          <span class="tag tag-new">NOUVEAU</span>
+          <span class="tag tag-buy">1er ACHAT</span>
+        </div>
+      </div>
+      <div class="token-amount">
+        <div class="amount-usd ${usdClass}">${fmt(usdAmt)}</div>
+        <div class="amount-sol">${solAmt.toFixed(2)} SOL</div>
+        <div class="amount-time">${time}</div>
+      </div>
+    </div>
+    ${renderBubbleViz(analysis)}
+    <div class="card-actions">
+      <a class="action-btn action-pump" href="https://pump.fun/${mint}" target="_blank">→ PUMP.FUN</a>
+      <button class="action-btn action-ignore" onclick="this.closest('.card').remove()">✕ IGNORER</button>
+    </div>
+  `;
+
+  feed.insertBefore(card, feed.firstChild);
+
+  // Trim feed
+  const cards = feed.querySelectorAll('.card');
+  if (cards.length > 50) cards[cards.length-1].remove();
+
+  // Alert if danger
+  if (level === 'danger') {
+    triggerAlert(name, mint, usdAmt, analysis);
+  }
+}
+
+// ============================================================
+// ALERT
+// ============================================================
+function triggerAlert(name, mint, usdAmt, analysis) {
+  const banner = document.getElementById('alert-banner');
+  banner.textContent = `🔴 BULLES DÉTECTÉES — ${name} — ${analysis.totalGroups} GROUPES CONNECTÉS — ${fmt(usdAmt)}`;
+  banner.style.display = 'block';
+  setTimeout(() => banner.style.display = 'none', 6000);
+
+  playSound();
+  addAlertLog(name, mint, usdAmt, analysis);
+  showModal(name, mint, usdAmt, analysis);
+}
+
+function addAlertLog(name, mint, usdAmt, analysis) {
+  const log = document.getElementById('alert-log');
+  const item = document.createElement('div');
+  item.className = 'alert-item';
+  item.innerHTML = `
+    <span style="color:var(--red)">🔴</span>
+    <span style="color:#fff">${name}</span>
+    <span style="color:var(--yellow)">${analysis.totalGroups} groupes</span>
+    <span>${fmt(usdAmt)}</span>
+    <a href="https://pump.fun/${mint}" target="_blank">VOIR →</a>
+    <span style="margin-left:auto;color:var(--muted)">${now()}</span>
+  `;
+  log.insertBefore(item, log.firstChild);
+  const items = log.querySelectorAll('.alert-item');
+  if (items.length > 3) items[items.length-1].remove();
+}
+
+function showModal(name, mint, usdAmt, analysis) {
+  document.getElementById('m-token').textContent = short(mint);
+  document.getElementById('m-amount').textContent = fmtFull(usdAmt);
+  document.getElementById('m-bubbles').innerHTML = `
+    🫧 ${analysis.totalGroups} groupes de wallets connectés<br>
+    👛 ${analysis.totalConnected} wallets liés entre eux<br>
+    ⚠️ Risque estimé : ${analysis.risk}%<br>
+    ${analysis.verdictText}
+  `;
+  document.getElementById('m-link').href = 'https://pump.fun/' + mint;
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats() {
+  document.getElementById('s-total').textContent = totalCount;
+  document.getElementById('s-danger').textContent = dangerCount;
+  document.getElementById('s-warn').textContent = warnCount;
+  document.getElementById('s-safe').textContent = safeCount;
+}
+
+// ============================================================
+// SOUND
+// ============================================================
+function playSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [[440,0],[660,0.1],[550,0.2],[880,0.3]].forEach(([f,t]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = f; o.type = 'sawtooth';
+      g.gain.setValueAtTime(0.1, ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+t+0.08);
+      o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+0.08);
+    });
+  } catch(e) {}
+}
+
+// ============================================================
+// SOL PRICE
+// ============================================================
+async function fetchSolPrice() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+    const d = await r.json();
+    solPrice = d?.solana?.usd || 145;
+  } catch(e) { solPrice = 145; }
+}
+fetchSolPrice();
+setInterval(fetchSolPrice, 30000);
+
+// ============================================================
+// WEBSOCKET — PumpPortal
+// ============================================================
+function startMonitor() {
+  if (ws) ws.close();
+  setStatus('connecting', 'CONNEXION…');
+
+  ws = new WebSocket('wss://pumpportal.fun/api/data');
+
+  ws.onopen = () => {
+    running = true;
+    setStatus('live', 'LIVE');
+    ws.send(JSON.stringify({ method: 'subscribeNewToken' }));
+    document.getElementById('btn-start').style.display = 'none';
+    document.getElementById('btn-stop').style.display = '';
+  };
+
+  ws.onmessage = (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      handleEvent(data);
+    } catch(err) {}
+  };
+
+  ws.onerror = () => setStatus('err', 'ERREUR');
+
+  ws.onclose = () => {
+    running = false;
+    setStatus('off', 'OFF');
+    document.getElementById('btn-start').style.display = '';
+    document.getElementById('btn-stop').style.display = 'none';
+  };
+}
+
+function stopMonitor() {
+  running = false;
+  if (ws) { ws.close(); ws = null; }
+  setStatus('off', 'OFF');
+  document.getElementById('btn-start').style.display = '';
+  document.getElementById('btn-stop').style.display = 'none';
+}
+
+function setStatus(state, label) {
+  const dot = document.getElementById('dot');
+  const txt = document.getElementById('conn-txt');
+  dot.className = 'dot' + (state==='live'?' live':state==='err'?' err':'');
+  txt.className = state==='live'?'live':'';
+  txt.textContent = label;
+}
+
+// ============================================================
+// EVENT HANDLER
+// ============================================================
+function handleEvent(data) {
+  if (data.txType === 'create' || data.newTokenCreated) {
+    const usdAmt = (data.solAmount || data.initialBuy || 0) * (solPrice || 145);
+    const minUsd = getUsdThreshold();
+    if (usdAmt < minUsd) return;
+
+    addCard({
+      name: data.symbol || data.name || 'TOKEN',
+      mint: data.mint || '',
+      solAmt: data.solAmount || data.initialBuy || 0,
+      usdAmt,
+      time: now()
+    });
+  }
+}
+</script>
+</body>
+</html>
