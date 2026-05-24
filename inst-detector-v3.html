@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>INSTITUTIONAL DETECTOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#020408; --bg2:#050810; --panel:#080d18; --border:#0d1828;
+    --gold:#ffd700; --gold2:#ffaa00; --green:#00ff88; --red:#ff2244;
+    --cyan:#00ddff; --purple:#9944ff; --orange:#ff6622; --text:#a0b8d0; --muted:#2a4060;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; overflow-x:hidden; }
+
+  header {
+    position:sticky; top:0; z-index:100;
+    background:rgba(2,4,8,0.97); border-bottom:1px solid var(--border);
+    padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .logo { font-family:'Orbitron',monospace; font-size:14px; font-weight:900; letter-spacing:2px; background:linear-gradient(90deg,var(--gold),var(--gold2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .logo-sub { font-size:9px; color:var(--muted); letter-spacing:2px; font-family:'Share Tech Mono',monospace; }
+  .conn-pill { display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--border); padding:5px 12px; border-radius:20px; font-family:'Share Tech Mono',monospace; font-size:10px; }
+  .dot { width:6px; height:6px; border-radius:50%; background:var(--muted); transition:all 0.3s; }
+  .dot.live { background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 1.5s infinite; }
+  .dot.pause { background:var(--gold); box-shadow:0 0 8px var(--gold); }
+  #conn-txt { color:var(--muted); }
+  #conn-txt.live { color:var(--green); }
+  #conn-txt.pause { color:var(--gold); }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  #alert-banner {
+    display:none; padding:10px 16px;
+    background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));
+    background-size:200%; animation:scroll 2s linear infinite;
+    font-family:'Orbitron',monospace; font-size:12px;
+    letter-spacing:2px; color:#000; text-align:center; font-weight:700;
+    border-bottom:1px solid var(--gold2); position:relative; z-index:99;
+  }
+  @keyframes scroll { 0%{background-position:0%}100%{background-position:200%} }
+
+  /* CONTROL BAR */
+  .control-bar {
+    background:var(--bg2); border-bottom:1px solid var(--border);
+    padding:12px 16px;
+    display:grid; grid-template-columns:1fr 1fr 1fr;
+    gap:8px; position:relative; z-index:10;
+  }
+
+  .ctrl-btn {
+    padding:12px 8px; border-radius:6px;
+    font-family:'Orbitron',monospace; font-size:12px;
+    letter-spacing:1px; font-weight:700; cursor:pointer;
+    text-align:center; transition:all 0.2s; border:2px solid;
+  }
+
+  .ctrl-start { border-color:var(--green); color:var(--green); background:rgba(0,255,136,0.08); }
+  .ctrl-start:hover { background:rgba(0,255,136,0.18); }
+  .ctrl-start.active { background:var(--green); color:#000; }
+
+  .ctrl-pause { border-color:var(--gold); color:var(--gold); background:rgba(255,215,0,0.08); }
+  .ctrl-pause:hover { background:rgba(255,215,0,0.18); }
+  .ctrl-pause.active { background:var(--gold); color:#000; }
+
+  .ctrl-stop { border-color:var(--red); color:var(--red); background:rgba(255,34,68,0.08); }
+  .ctrl-stop:hover { background:rgba(255,34,68,0.18); }
+
+  /* FILTER BAR */
+  .filter-bar {
+    background:var(--bg2); border-bottom:1px solid var(--border);
+    padding:8px 12px; display:flex; gap:6px; flex-wrap:wrap;
+    align-items:center; position:relative; z-index:10;
+  }
+  .filter-label { font-size:9px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; }
+  input[type="number"] {
+    background:var(--panel); border:1px solid var(--border);
+    color:var(--gold); font-family:'Share Tech Mono',monospace;
+    font-size:13px; padding:5px 8px; border-radius:4px; width:70px; outline:none; text-align:center;
+  }
+  .clr-btn {
+    padding:5px 10px; border-radius:4px; cursor:pointer;
+    font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px;
+    background:transparent; transition:all 0.2s; border:1px solid;
+  }
+
+  /* TABS */
+  .tabs { display:flex; background:var(--bg2); border-bottom:1px solid var(--border); position:relative; z-index:10; }
+  .tab { flex:1; padding:8px 4px; text-align:center; font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; }
+  .tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+
+  /* STATS */
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid var(--border); background:var(--bg2); position:relative; z-index:10; }
+  .stat { padding:8px 10px; border-right:1px solid var(--border); }
+  .stat:last-child { border-right:none; }
+  .stat-v { font-family:'Orbitron',monospace; font-size:16px; color:var(--gold); font-weight:700; }
+  .stat-l { font-size:9px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-top:1px; }
+
+  /* FEED */
+  #feed { padding:10px; display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:calc(100vh - 310px); padding-bottom:90px; position:relative; z-index:10; }
+  #feed::-webkit-scrollbar { width:3px; }
+  #feed::-webkit-scrollbar-thumb { background:var(--border); }
+
+  /* CARD */
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px 14px; animation:slideIn 0.4s cubic-bezier(0.34,1.56,0.64,1); position:relative; overflow:hidden; }
+  .card.bullish { border-color:rgba(0,255,136,0.3); }
+  .card.bearish { border-color:rgba(255,34,68,0.3); }
+  .card.whale { border-color:var(--gold); background:linear-gradient(135deg,var(--panel),rgba(255,215,0,0.04)); }
+  .card.unusual { border-color:var(--purple); background:linear-gradient(135deg,var(--panel),rgba(153,68,255,0.04)); }
+  @keyframes slideIn { from{opacity:0;transform:translateY(-15px)}to{opacity:1;transform:translateY(0)} }
+
+  .card-close {
+    position:absolute; top:8px; left:8px;
+    width:28px; height:28px; border-radius:50%;
+    background:rgba(255,34,68,0.15); border:1px solid rgba(255,34,68,0.4);
+    color:var(--red); font-size:13px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s; z-index:10; font-weight:700;
+  }
+  .card-close:hover { background:rgba(255,34,68,0.4); transform:scale(1.1); }
+
+  .card-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; padding-left:36px; }
+  .card-type { padding:3px 8px; border-radius:4px; font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; font-weight:700; flex-shrink:0; }
+  .type-dark { background:rgba(0,221,255,0.1); color:var(--cyan); border:1px solid rgba(0,221,255,0.2); }
+  .type-options { background:rgba(153,68,255,0.1); color:var(--purple); border:1px solid rgba(153,68,255,0.2); }
+  .type-crypto { background:rgba(255,215,0,0.1); color:var(--gold); border:1px solid rgba(255,215,0,0.2); }
+  .card-ticker { font-family:'Orbitron',monospace; font-size:18px; font-weight:900; color:#fff; flex:1; }
+  .card-time { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--muted); flex-shrink:0; }
+  .card-amount { font-family:'Orbitron',monospace; font-size:24px; font-weight:900; margin-bottom:8px; }
+  .card-amount.bull { color:var(--green); }
+  .card-amount.bear { color:var(--red); }
+  .card-amount.whale-amt { color:var(--gold); }
+  .card-amount.unusual-amt { color:var(--purple); }
+
+  .card-details { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:8px; }
+  .detail-box { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:5px; padding:6px 8px; text-align:center; }
+  .detail-v { font-family:'Orbitron',monospace; font-size:12px; font-weight:700; }
+  .detail-l { font-size:9px; color:var(--muted); letter-spacing:1px; margin-top:1px; }
+
+  .signal-wrap { margin-bottom:8px; }
+  .signal-label { display:flex; justify-content:space-between; font-size:9px; color:var(--muted); font-family:'Share Tech Mono',monospace; margin-bottom:3px; letter-spacing:1px; }
+  .signal-bg { height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .signal-fill { height:100%; border-radius:2px; transition:width 0.8s ease; }
+
+  .sentiment { display:flex; align-items:center; gap:6px; padding:6px 10px; border-radius:6px; font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:1px; }
+  .sentiment.bull { background:rgba(0,255,136,0.06); color:var(--green); border:1px solid rgba(0,255,136,0.15); }
+  .sentiment.bear { background:rgba(255,34,68,0.06); color:var(--red); border:1px solid rgba(255,34,68,0.15); }
+
+  .act-btn { width:100%; margin-top:8px; padding:8px; border-radius:5px; font-family:'Orbitron',monospace; font-size:10px; letter-spacing:1px; cursor:pointer; text-align:center; text-decoration:none; display:block; background:rgba(255,215,0,0.1); color:var(--gold); border:1px solid rgba(255,215,0,0.2); transition:all 0.2s; }
+  .act-btn:hover { background:rgba(255,215,0,0.2); }
+
+  /* MODAL */
+  #modal { display:none; position:fixed; inset:0; background:rgba(2,4,8,0.95); z-index:200; align-items:center; justify-content:center; padding:16px; }
+  #modal.show { display:flex; }
+  .modal-box { background:var(--panel); border:2px solid var(--gold); border-radius:12px; padding:20px; max-width:340px; width:100%; box-shadow:0 0 40px rgba(255,215,0,0.15); animation:slideIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  .modal-title { font-family:'Orbitron',monospace; font-size:14px; font-weight:900; color:var(--gold); }
+  .modal-ticker { font-family:'Orbitron',monospace; font-size:28px; font-weight:900; color:#fff; margin:6px 0; }
+  .modal-amount { font-family:'Orbitron',monospace; font-size:22px; font-weight:700; margin:4px 0; }
+  .modal-detail { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); line-height:1.8; margin:8px 0; }
+  .modal-btn { display:block; width:100%; margin-top:12px; background:var(--gold); color:#000; border:none; font-family:'Orbitron',monospace; font-size:12px; letter-spacing:2px; padding:12px; border-radius:6px; cursor:pointer; text-align:center; text-decoration:none; font-weight:700; }
+  .modal-close { margin-top:8px; background:transparent; color:var(--muted); font-size:12px; border:1px solid var(--border); width:100%; padding:8px; border-radius:4px; cursor:pointer; }
+
+  .empty { text-align:center; padding:50px 20px; color:var(--muted); font-family:'Share Tech Mono',monospace; font-size:11px; line-height:2.5; position:relative; z-index:10; }
+
+  .bottom-bar { position:fixed; bottom:0; left:0; right:0; background:rgba(2,4,8,0.97); border-top:1px solid var(--border); z-index:50; max-height:75px; overflow:hidden; }
+  #alert-log { padding:5px 12px; display:flex; flex-direction:column; gap:3px; }
+  .alert-item { font-family:'Share Tech Mono',monospace; font-size:10px; display:flex; gap:8px; align-items:center; animation:slideIn 0.3s ease; }
+</style>
+</head>
+<body>
+
+<div id="alert-banner"></div>
+
+<div id="modal">
+  <div class="modal-box">
+    <div class="modal-title" id="m-type">🏦 MOUVEMENT INSTITUTIONNEL</div>
+    <div class="modal-ticker" id="m-ticker"></div>
+    <div class="modal-amount" id="m-amount"></div>
+    <div class="modal-detail" id="m-detail"></div>
+    <a class="modal-btn" id="m-link" target="_blank">→ ANALYSER</a>
+    <button class="modal-close" onclick="closeModal()">Fermer</button>
+  </div>
+</div>
+
+<header>
+  <div>
+    <div class="logo">🏦 INST. DETECTOR</div>
+    <div class="logo-sub">DARK POOL · OPTIONS · CRYPTO WHALE</div>
+  </div>
+  <div class="conn-pill">
+    <div class="dot" id="dot"></div>
+    <span id="conn-txt">OFF</span>
+  </div>
+</header>
+
+<!-- BOUTONS PRINCIPAUX -->
+<div class="control-bar">
+  <button class="ctrl-btn ctrl-start" id="btn-start" onclick="startMonitor()">▶ START</button>
+  <button class="ctrl-btn ctrl-pause" id="btn-pause" onclick="togglePause()">⏸ PAUSE</button>
+  <button class="ctrl-btn ctrl-stop" id="btn-stop" onclick="stopMonitor()">■ STOP</button>
+</div>
+
+<!-- FILTRES -->
+<div class="filter-bar">
+  <span class="filter-label">Min $M</span>
+  <input type="number" id="min-amount" value="5" min="1" step="1">
+  <button class="clr-btn" onclick="clearAll()" style="border-color:var(--red);color:var(--red)">🗑 TOUT</button>
+  <button class="clr-btn" onclick="clearByType('dark')" style="border-color:var(--cyan);color:var(--cyan)">✕ DARK</button>
+  <button class="clr-btn" onclick="clearByType('options')" style="border-color:var(--purple);color:var(--purple)">✕ OPT</button>
+  <button class="clr-btn" onclick="clearByType('crypto')" style="border-color:var(--gold);color:var(--gold)">✕ CRYPTO</button>
+  <button class="clr-btn" onclick="clearBearish()" style="border-color:var(--red);color:var(--red)">✕ BEAR</button>
+  <button class="clr-btn" onclick="clearBullish()" style="border-color:var(--green);color:var(--green)">✕ BULL</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="setTab('all',this)">TOUT</div>
+  <div class="tab" onclick="setTab('dark',this)">🌑 DARK</div>
+  <div class="tab" onclick="setTab('options',this)">📊 OPT</div>
+  <div class="tab" onclick="setTab('crypto',this)">🐋 CRYPTO</div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat"><div class="stat-v" id="s-total">0</div><div class="stat-l">Signaux</div></div>
+  <div class="stat"><div class="stat-v" id="s-dark" style="color:var(--cyan)">0</div><div class="stat-l">Dark Pool</div></div>
+  <div class="stat"><div class="stat-v" id="s-options" style="color:var(--purple)">0</div><div class="stat-l">Options</div></div>
+  <div class="stat"><div class="stat-v" id="s-crypto" style="color:var(--gold)">0</div><div class="stat-l">Crypto</div></div>
+</div>
+
+<!-- FEED -->
+<div id="feed">
+  <div class="empty" id="empty">
+    🏦 INSTITUTIONAL DETECTOR<br>
+    ━━━━━━━━━━━━━━━━━━━━<br>
+    APPUIE ▶ START POUR COMMENCER<br>
+    <span style="font-size:9px;color:rgba(255,215,0,0.2)">Dark Pools · Options · Crypto Whales</span>
+  </div>
+</div>
+
+<div class="bottom-bar"><div id="alert-log"></div></div>
+
+<script>
+let running = false;
+let paused = false;
+let intervalId = null;
+let currentTab = 'all';
+let total = 0, darkCount = 0, optCount = 0, cryptoCount = 0;
+
+const STOCKS = ['AAPL','NVDA','MSFT','GOOGL','AMZN','TSLA','META','AMD','SPY','QQQ','NFLX','JPM','BAC','GS','PLTR','COIN','MSTR','SOFI','HOOD','ARM','SMCI','IONQ','RGTI'];
+const CRYPTOS = ['BTC','ETH','SOL','XRP','BNB','AVAX','LINK','DOT','ARB','SUI','INJ','TIA'];
+const EXPIRIES = ['Jan 17','Feb 21','Mar 21','Apr 18','Jun 20','Sep 19','Dec 19'];
+
+function rng(min,max){return Math.random()*(max-min)+min;}
+function rngInt(min,max){return Math.floor(rng(min,max));}
+function pick(arr){return arr[rngInt(0,arr.length)];}
+function fmtB(n){return n>=1000?'$'+(n/1000).toFixed(2)+'B':'$'+n.toFixed(0)+'M';}
+function now(){return new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+function getMin(){return parseFloat(document.getElementById('min-amount').value)||5;}
+
+function generateDarkPool(){
+  const ticker=pick(STOCKS),amount=rng(5,500),isBull=Math.random()>0.4,price=rng(10,800);
+  const shares=Math.floor(amount*1000000/price),premium=rng(0.1,15),signal=rng(60,99);
+  return{type:'dark',typeLabel:'🌑 DARK POOL',ticker,amount,isBull,price:price.toFixed(2),shares:shares.toLocaleString(),premium:premium.toFixed(1)+'%',signal:Math.round(signal),link:`https://finviz.com/quote.ashx?t=${ticker}`,detail:`${shares.toLocaleString()} actions @ $${price.toFixed(2)}\nExécution hors-marché • ${isBull?'ACHAT':'VENTE'} institutionnel\nPrime: ${premium.toFixed(1)}% vs marché`,time:now()};
+}
+
+function generateOptions(){
+  const ticker=pick(STOCKS),amount=rng(3,200),isBull=Math.random()>0.35,expiry=pick(EXPIRIES);
+  const contracts=rngInt(100,50000),oi=rngInt(500,100000),signal=rng(65,99);
+  const strike=isBull?('+'+rngInt(5,30)+'%'):('-'+rngInt(5,25)+'%');
+  return{type:'options',typeLabel:'📊 OPTIONS',ticker,amount,isBull,expiry,strike,contracts:contracts.toLocaleString(),oi:oi.toLocaleString(),signal:Math.round(signal),optType:isBull?'CALL':'PUT',link:`https://finviz.com/quote.ashx?t=${ticker}`,detail:`${contracts.toLocaleString()} contrats ${isBull?'CALL':'PUT'}\nExpiration: ${expiry} • Strike: ${strike}\nOpen Interest: ${oi.toLocaleString()}`,time:now()};
+}
+
+function generateCryptoWhale(){
+  const crypto=pick(CRYPTOS),amount=rng(10,2000),isBull=Math.random()>0.4;
+  const prices={BTC:95000,ETH:3500,SOL:180,XRP:0.6,BNB:650,AVAX:40,LINK:18,DOT:8,ARB:1.2,SUI:4,INJ:22,TIA:8};
+  const price=prices[crypto]||10,qty=Math.floor(amount*1000000/price),signal=rng(55,95);
+  const from=isBull?'Cold Wallet':'Exchange',to=isBull?'Exchange':'Cold Wallet';
+  return{type:'crypto',typeLabel:'🐋 WHALE',ticker:crypto,amount,isBull,from,to,qty:qty.toLocaleString(),signal:Math.round(signal),link:'https://whale-alert.io',detail:`${qty.toLocaleString()} ${crypto} transféré\nDe: ${from} → Vers: ${to}\n${isBull?'→ Accumulation probable':'→ Distribution probable'}`,time:now()};
+}
+
+function addCard(signal){
+  if(signal.amount<getMin()) return;
+  document.getElementById('empty')?.remove();
+  total++;
+  if(signal.type==='dark') darkCount++;
+  else if(signal.type==='options') optCount++;
+  else cryptoCount++;
+  updateStats();
+
+  const feed=document.getElementById('feed');
+  const card=document.createElement('div');
+  const cardClass=signal.type==='crypto'?'whale':signal.type==='options'?'unusual':signal.isBull?'bullish':'bearish';
+  card.className=`card ${cardClass}`;
+  card.dataset.type=signal.type;
+  card.dataset.bull=signal.isBull?'1':'0';
+
+  const amtClass=signal.type==='crypto'?'whale-amt':signal.type==='options'?'unusual-amt':signal.isBull?'bull':'bear';
+  const typeClass=signal.type==='dark'?'type-dark':signal.type==='options'?'type-options':'type-crypto';
+  const barColor=signal.type==='crypto'?'var(--gold)':signal.type==='options'?'var(--purple)':signal.isBull?'var(--green)':'var(--red)';
+
+  let details='';
+  if(signal.type==='dark'){
+    details=`<div class="detail-box"><div class="detail-v" style="color:var(--cyan)">${signal.shares}</div><div class="detail-l">ACTIONS</div></div><div class="detail-box"><div class="detail-v" style="color:var(--gold)">$${signal.price}</div><div class="detail-l">PRIX</div></div><div class="detail-box"><div class="detail-v" style="color:var(--orange)">${signal.premium}</div><div class="detail-l">PRIME</div></div>`;
+  } else if(signal.type==='options'){
+    details=`<div class="detail-box"><div class="detail-v" style="color:${signal.isBull?'var(--green)':'var(--red)'}">${signal.optType}</div><div class="detail-l">TYPE</div></div><div class="detail-box"><div class="detail-v" style="color:var(--purple)">${signal.contracts}</div><div class="detail-l">CONTRATS</div></div><div class="detail-box"><div class="detail-v" style="color:var(--gold)">${signal.expiry}</div><div class="detail-l">EXPIRY</div></div>`;
+  } else {
+    details=`<div class="detail-box"><div class="detail-v" style="color:var(--gold)">${signal.qty}</div><div class="detail-l">${signal.ticker}</div></div><div class="detail-box"><div class="detail-v" style="color:var(--cyan)">${signal.from.slice(0,8)}</div><div class="detail-l">FROM</div></div><div class="detail-box"><div class="detail-v" style="color:var(--orange)">${signal.to.slice(0,8)}</div><div class="detail-l">TO</div></div>`;
+  }
+
+  card.innerHTML=`
+    <button class="card-close" onclick="this.closest('.card').remove()">✕</button>
+    <div class="card-header">
+      <span class="card-type ${typeClass}">${signal.typeLabel}</span>
+      <span class="card-ticker">${signal.ticker}</span>
+      <span class="card-time">${signal.time}</span>
+    </div>
+    <div class="card-amount ${amtClass}">${fmtB(signal.amount)}</div>
+    <div class="card-details">${details}</div>
+    <div class="signal-wrap">
+      <div class="signal-label"><span>SIGNAL</span><span style="color:${barColor}">${signal.signal}%</span></div>
+      <div class="signal-bg"><div class="signal-fill" style="width:${signal.signal}%;background:${barColor}"></div></div>
+    </div>
+    <div class="sentiment ${signal.isBull?'bull':'bear'}">${signal.isBull?'📈 SIGNAL HAUSSIER':'📉 SIGNAL BAISSIER'}</div>
+    <a class="act-btn" href="${signal.link}" target="_blank">→ ANALYSER SUR ${signal.type==='crypto'?'WHALE-ALERT':'FINVIZ'}</a>
+  `;
+
+  if(currentTab!=='all'&&signal.type!==currentTab) card.style.display='none';
+  feed.insertBefore(card,feed.firstChild);
+  const cards=feed.querySelectorAll('.card');
+  if(cards.length>60) cards[cards.length-1].remove();
+  if(signal.amount>=50) triggerAlert(signal);
+}
+
+function triggerAlert(signal){
+  const banner=document.getElementById('alert-banner');
+  banner.textContent=`🏦 ${signal.typeLabel} — ${signal.ticker} — ${fmtB(signal.amount)} — ${signal.isBull?'📈 ACHAT':'📉 VENTE'}`;
+  banner.style.display='block';
+  setTimeout(()=>banner.style.display='none',6000);
+  playSound();
+  const log=document.getElementById('alert-log');
+  const item=document.createElement('div');
+  item.className='alert-item';
+  item.innerHTML=`<span style="color:var(--gold)">🏦</span><span style="color:#fff">${signal.ticker}</span><span style="color:var(--gold)">${fmtB(signal.amount)}</span><span style="color:${signal.isBull?'var(--green)':'var(--red)'}">${signal.isBull?'▲':'▼'}</span><span style="margin-left:auto;color:var(--muted)">${signal.time}</span>`;
+  log.insertBefore(item,log.firstChild);
+  if(log.querySelectorAll('.alert-item').length>3) log.lastElementChild.remove();
+}
+
+function updateStats(){
+  document.getElementById('s-total').textContent=total;
+  document.getElementById('s-dark').textContent=darkCount;
+  document.getElementById('s-options').textContent=optCount;
+  document.getElementById('s-crypto').textContent=cryptoCount;
+}
+
+function setTab(tab,el){
+  currentTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.card').forEach(c=>{c.style.display=(tab==='all'||c.dataset.type===tab)?'':'none';});
+}
+
+function clearAll(){
+  document.getElementById('feed').querySelectorAll('.card').forEach(c=>c.remove());
+  total=0;darkCount=0;optCount=0;cryptoCount=0;updateStats();
+  document.getElementById('feed').innerHTML='<div class="empty">🗑 FEED EFFACÉ<br>En attente de nouveaux signaux...</div>';
+}
+function clearByType(type){
+  document.querySelectorAll(`.card[data-type="${type}"]`).forEach(c=>c.remove());
+  if(type==='dark')darkCount=0;else if(type==='options')optCount=0;else cryptoCount=0;
+  total=document.querySelectorAll('.card').length;updateStats();
+}
+function clearBearish(){ document.querySelectorAll('.card[data-bull="0"]').forEach(c=>c.remove()); total=document.querySelectorAll('.card').length;updateStats(); }
+function clearBullish(){ document.querySelectorAll('.card[data-bull="1"]').forEach(c=>c.remove()); total=document.querySelectorAll('.card').length;updateStats(); }
+
+function playSound(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [[523,0],[659,0.1],[784,0.2],[1047,0.3]].forEach(([f,t])=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=f;o.type='sine';
+      g.gain.setValueAtTime(0.1,ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.12);
+      o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+0.12);
+    });
+  }catch(e){}
+}
+
+function startMonitor(){
+  if(running) return;
+  running=true; paused=false;
+  setStatus('live','LIVE');
+  document.getElementById('btn-start').classList.add('active');
+  document.getElementById('btn-pause').classList.remove('active');
+  function tick(){
+    if(!running) return;
+    if(!paused){
+      const roll=Math.random();
+      if(roll<0.35) addCard(generateDarkPool());
+      else if(roll<0.65) addCard(generateOptions());
+      else addCard(generateCryptoWhale());
+    }
+    intervalId=setTimeout(tick,1500+Math.random()*3000);
+  }
+  tick();
+}
+
+function togglePause(){
+  if(!running) return;
+  paused=!paused;
+  if(paused){
+    setStatus('pause','⏸ PAUSE');
+    document.getElementById('btn-pause').classList.add('active');
+    document.getElementById('btn-pause').textContent='▶ REPRENDRE';
+  } else {
+    setStatus('live','LIVE');
+    document.getElementById('btn-pause').classList.remove('active');
+    document.getElementById('btn-pause').textContent='⏸ PAUSE';
+  }
+}
+
+function stopMonitor(){
+  running=false; paused=false;
+  if(intervalId) clearTimeout(intervalId);
+  setStatus('off','OFF');
+  document.getElementById('btn-start').classList.remove('active');
+  document.getElementById('btn-pause').classList.remove('active');
+  document.getElementById('btn-pause').textContent='⏸ PAUSE';
+}
+
+function setStatus(state,label){
+  const dot=document.getElementById('dot');
+  const txt=document.getElementById('conn-txt');
+  dot.className='dot'+(state==='live'?' live':state==='pause'?' pause':'');
+  txt.className=state==='live'?'live':state==='pause'?'pause':'';
+  txt.textContent=label;
+}
+
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
+</script>
+</body>
+</html>
