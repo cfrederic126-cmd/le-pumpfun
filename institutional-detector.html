@@ -334,17 +334,20 @@
 </div>
 
 <!-- CONFIG -->
-<div class="config-bar">
-  <span class="cfg-label">Min $M</span>
-  <input type="number" id="min-amount" value="5" min="1" step="1">
-  <button class="btn active" id="btn-start" onclick="startMonitor()">▶ START</button>
-  <button class="btn stop" id="btn-stop" onclick="stopMonitor()">■ STOP</button>
-  <button class="btn" id="btn-pause" onclick="pauseMonitor()" style="border-color:#ffaa00;color:#ffaa00;display:none">⏸ PAUSE</button>
-  <button class="btn" id="btn-resume" onclick="resumeMonitor()" style="border-color:#ffaa00;color:#ffaa00;display:none">▶ REPRENDRE</button>
-  <button class="btn" onclick="clearAll()" style="border-color:#ff2244;color:#ff2244">🗑 TOUT</button>
+<div class="config-bar" style="justify-content:space-between;">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span class="cfg-label">Min $M</span>
+    <input type="number" id="min-amount" value="5" min="1" step="1">
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn active" id="btn-start" onclick="startMonitor()" style="padding:10px 20px;font-size:13px;">▶ START</button>
+    <button class="btn" id="btn-pause" onclick="pauseMonitor()" style="border-color:#ffaa00;color:#ffaa00;display:none;padding:10px 20px;font-size:13px;">⏸ PAUSE</button>
+    <button class="btn" id="btn-resume" onclick="resumeMonitor()" style="border-color:#ffaa00;color:#ffaa00;display:none;padding:10px 20px;font-size:13px;">▶ REPRENDRE</button>
+  </div>
 </div>
-<div class="config-bar">
+<div class="config-bar" style="gap:6px;">
   <span class="cfg-label" style="font-size:9px">EFFACER :</span>
+  <button class="btn" onclick="clearAll()" style="border-color:#ff2244;color:#ff2244;font-size:9px;padding:5px 10px">🗑 TOUT</button>
   <button class="btn" onclick="clearByType('dark')" style="border-color:#00ddff;color:#00ddff;font-size:9px;padding:5px 10px">✕ DARK</button>
   <button class="btn" onclick="clearByType('options')" style="border-color:#9944ff;color:#9944ff;font-size:9px;padding:5px 10px">✕ OPTIONS</button>
   <button class="btn" onclick="clearByType('crypto')" style="border-color:#ffd700;color:#ffd700;font-size:9px;padding:5px 10px">✕ CRYPTO</button>
@@ -718,7 +721,6 @@ function stopMonitor() {
   if (intervalId) clearTimeout(intervalId);
   setStatus('off', 'OFF');
   document.getElementById('btn-start').style.display = '';
-  document.getElementById('btn-stop').style.display = 'none';
   document.getElementById('btn-pause').style.display = 'none';
   document.getElementById('btn-resume').style.display = 'none';
   paused = false;
