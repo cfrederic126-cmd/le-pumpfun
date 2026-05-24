@@ -339,6 +339,8 @@
   <input type="number" id="min-amount" value="5" min="1" step="1">
   <button class="btn active" id="btn-start" onclick="startMonitor()">▶ START</button>
   <button class="btn stop" id="btn-stop" onclick="stopMonitor()">■ STOP</button>
+  <button class="btn" id="btn-pause" onclick="pauseMonitor()" style="border-color:#ffaa00;color:#ffaa00;display:none">⏸ PAUSE</button>
+  <button class="btn" id="btn-resume" onclick="resumeMonitor()" style="border-color:#ffaa00;color:#ffaa00;display:none">▶ REPRENDRE</button>
   <button class="btn" onclick="clearAll()" style="border-color:#ff2244;color:#ff2244">🗑 TOUT</button>
 </div>
 <div class="config-bar">
@@ -391,6 +393,7 @@
 // STATE
 // ============================================================
 let running = false;
+let paused = false;
 let intervalId = null;
 let currentTab = 'all';
 let total = 0, darkCount = 0, optCount = 0, cryptoCount = 0;
@@ -683,6 +686,7 @@ function startMonitor() {
   function tick() {
     if (!running) return;
     
+    if (paused) { intervalId = setTimeout(tick, 500); return; }
     const roll = Math.random();
     if (roll < 0.35) addCard(generateDarkPool());
     else if (roll < 0.65) addCard(generateOptions());
@@ -694,16 +698,34 @@ function startMonitor() {
   tick();
 }
 
+
+function pauseMonitor() {
+  paused = true;
+  document.getElementById('btn-pause').style.display = 'none';
+  document.getElementById('btn-resume').style.display = '';
+  setStatus('pause', '⏸ PAUSE');
+}
+
+function resumeMonitor() {
+  paused = false;
+  document.getElementById('btn-pause').style.display = '';
+  document.getElementById('btn-resume').style.display = 'none';
+  setStatus('live', 'LIVE');
+}
+
 function stopMonitor() {
   running = false;
   if (intervalId) clearTimeout(intervalId);
   setStatus('off', 'OFF');
   document.getElementById('btn-start').style.display = '';
   document.getElementById('btn-stop').style.display = 'none';
+  document.getElementById('btn-pause').style.display = 'none';
+  document.getElementById('btn-resume').style.display = 'none';
+  paused = false;
 }
 
 function setStatus(state, label) {
-  document.getElementById('dot').className = 'dot' + (state==='live'?' live':'');
+  document.getElementById('dot').className = 'dot' + (state==='live'?' live':state==='pause'?' live':'');
   const txt = document.getElementById('conn-txt');
   txt.className = state==='live'?'live':'';
   txt.textContent = label;
