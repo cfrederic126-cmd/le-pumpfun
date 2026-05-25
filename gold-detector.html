@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GOLD DETECTOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#030200; --bg2:#080600; --panel:#0e0a00; --border:#1a1400;
+    --gold:#ffd700; --gold2:#ffaa00; --gold3:#ff8800;
+    --green:#00ff88; --red:#ff2244; --cyan:#00ddff;
+    --text:#d4b896; --muted:#4a3a20;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; overflow-x:hidden; }
+
+  body::before {
+    content:''; position:fixed; inset:0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(255,215,0,0.04) 0%, transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+
+  header {
+    position:sticky; top:0; z-index:100;
+    background:rgba(3,2,0,0.97); border-bottom:1px solid var(--border);
+    padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .logo { font-family:'Orbitron',monospace; font-size:16px; font-weight:900; letter-spacing:3px; background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold3)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .logo-sub { font-size:9px; color:var(--muted); letter-spacing:2px; font-family:'Share Tech Mono',monospace; margin-top:2px; }
+
+  .conn-pill { display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--border); padding:5px 12px; border-radius:20px; font-family:'Share Tech Mono',monospace; font-size:10px; }
+  .dot { width:6px; height:6px; border-radius:50%; background:var(--muted); transition:all 0.3s; }
+  .dot.live { background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 1.5s infinite; }
+  .dot.loading { background:var(--gold); box-shadow:0 0 8px var(--gold); animation:pulse 0.5s infinite; }
+  .dot.pause { background:var(--gold); box-shadow:0 0 8px var(--gold); }
+  #conn-txt { color:var(--muted); }
+  #conn-txt.live { color:var(--green); }
+  #conn-txt.loading { color:var(--gold); }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  /* PRICE DISPLAY */
+  .price-display {
+    background: linear-gradient(135deg, var(--panel), rgba(255,215,0,0.05));
+    border-bottom: 1px solid var(--border);
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    position: relative; z-index:10;
+  }
+
+  .price-main {
+    grid-column: 1/-1;
+    text-align: center;
+  }
+
+  .price-label { font-size:10px; color:var(--muted); letter-spacing:2px; font-family:'Share Tech Mono',monospace; margin-bottom:4px; }
+  .price-val { font-family:'Orbitron',monospace; font-size:36px; font-weight:900; color:var(--gold); text-shadow:0 0 20px rgba(255,215,0,0.3); }
+  .price-change { font-family:'Share Tech Mono',monospace; font-size:14px; margin-top:4px; }
+  .price-change.up { color:var(--green); }
+  .price-change.down { color:var(--red); }
+
+  .price-mini { background:rgba(255,215,0,0.04); border:1px solid rgba(255,215,0,0.1); border-radius:6px; padding:8px 10px; }
+  .price-mini-val { font-family:'Orbitron',monospace; font-size:14px; font-weight:700; color:var(--gold2); }
+  .price-mini-lbl { font-size:9px; color:var(--muted); letter-spacing:1px; margin-top:2px; }
+
+  /* ALERT BANNER */
+  #alert-banner {
+    display:none; padding:10px 16px;
+    background:linear-gradient(90deg,var(--gold3),var(--gold),var(--gold3));
+    background-size:200%; animation:scroll 1.5s linear infinite;
+    font-family:'Orbitron',monospace; font-size:12px;
+    letter-spacing:2px; color:#000; text-align:center; font-weight:700;
+    border-bottom:1px solid var(--gold); z-index:99;
+  }
+  @keyframes scroll { 0%{background-position:0%}100%{background-position:200%} }
+
+  /* CONTROLS */
+  .control-bar {
+    background:var(--bg2); border-bottom:1px solid var(--border);
+    padding:12px 16px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;
+    position:relative; z-index:10;
+  }
+  .ctrl-btn {
+    padding:11px 8px; border-radius:6px; font-family:'Orbitron',monospace;
+    font-size:12px; letter-spacing:1px; font-weight:700; cursor:pointer;
+    text-align:center; transition:all 0.2s; border:2px solid;
+  }
+  .ctrl-start { border-color:var(--green); color:var(--green); background:rgba(0,255,136,0.06); }
+  .ctrl-start.active { background:var(--green); color:#000; }
+  .ctrl-pause { border-color:var(--gold); color:var(--gold); background:rgba(255,215,0,0.06); }
+  .ctrl-pause.active { background:var(--gold); color:#000; }
+  .ctrl-stop { border-color:var(--red); color:var(--red); background:rgba(255,34,68,0.06); }
+  .ctrl-stop:hover { background:rgba(255,34,68,0.12); }
+
+  /* ALERT CONFIG */
+  .alert-config {
+    background:var(--bg2); border-bottom:1px solid var(--border);
+    padding:10px 16px; position:relative; z-index:10;
+  }
+  .cfg-title { font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px; color:var(--gold2); margin-bottom:8px; }
+  .cfg-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+  .cfg-label { font-size:10px; color:var(--muted); letter-spacing:1px; white-space:nowrap; font-family:'Share Tech Mono',monospace; }
+
+  input[type="number"] {
+    background:var(--panel); border:1px solid rgba(255,215,0,0.2);
+    color:var(--gold); font-family:'Share Tech Mono',monospace;
+    font-size:13px; padding:6px 10px; border-radius:4px; outline:none; text-align:center;
+    width:100px;
+  }
+  input:focus { border-color:var(--gold); }
+
+  .add-btn {
+    padding:6px 14px; border-radius:4px; font-family:'Orbitron',monospace;
+    font-size:10px; letter-spacing:1px; cursor:pointer; border:1px solid var(--gold);
+    color:var(--gold); background:rgba(255,215,0,0.08); transition:all 0.2s;
+  }
+  .add-btn:hover { background:rgba(255,215,0,0.18); }
+
+  /* PRICE ALERTS LIST */
+  #price-alerts-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .price-alert-tag {
+    display:flex; align-items:center; gap:4px;
+    background:rgba(255,215,0,0.08); border:1px solid rgba(255,215,0,0.25);
+    border-radius:20px; padding:3px 10px;
+    font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--gold);
+  }
+  .price-alert-tag .remove { cursor:pointer; color:var(--red); font-size:12px; margin-left:2px; }
+
+  /* STATS */
+  .stats-row { display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid var(--border); background:var(--bg2); position:relative; z-index:10; }
+  .stat { padding:8px 10px; border-right:1px solid var(--border); }
+  .stat:last-child { border-right:none; }
+  .stat-v { font-family:'Orbitron',monospace; font-size:16px; color:var(--gold); font-weight:700; }
+  .stat-l { font-size:9px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-top:1px; }
+
+  /* FEED */
+  #feed { padding:10px; display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:calc(100vh - 480px); padding-bottom:90px; position:relative; z-index:10; }
+  #feed::-webkit-scrollbar { width:3px; }
+  #feed::-webkit-scrollbar-thumb { background:var(--border); }
+
+  /* CARD */
+  .card {
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:10px; padding:12px 14px;
+    animation:slideIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    position:relative; overflow:hidden;
+  }
+  .card.buy { border-color:rgba(0,255,136,0.4); background:linear-gradient(135deg,var(--panel),rgba(0,255,136,0.04)); }
+  .card.sell { border-color:rgba(255,34,68,0.4); background:linear-gradient(135deg,var(--panel),rgba(255,34,68,0.04)); }
+  .card.price-hit {
+    border-color:var(--gold);
+    background:linear-gradient(135deg,var(--panel),rgba(255,215,0,0.08));
+    box-shadow:0 0 20px rgba(255,215,0,0.15);
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)} }
+
+  .card-close { position:absolute; top:8px; left:8px; width:26px; height:26px; border-radius:50%; background:rgba(255,34,68,0.15); border:1px solid rgba(255,34,68,0.4); color:var(--red); font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .card-close:hover { background:rgba(255,34,68,0.35); }
+
+  .card-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; padding-left:34px; }
+  .card-badge { padding:3px 8px; border-radius:4px; font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; font-weight:700; }
+  .badge-buy { background:rgba(0,255,136,0.12); color:var(--green); border:1px solid rgba(0,255,136,0.25); }
+  .badge-sell { background:rgba(255,34,68,0.12); color:var(--red); border:1px solid rgba(255,34,68,0.25); }
+  .badge-price { background:rgba(255,215,0,0.12); color:var(--gold); border:1px solid rgba(255,215,0,0.3); }
+  .badge-src { font-size:9px; color:var(--muted); font-family:'Share Tech Mono',monospace; }
+
+  .card-price-val { font-family:'Orbitron',monospace; font-size:26px; font-weight:900; margin-bottom:6px; }
+  .card-price-val.up { color:var(--green); }
+  .card-price-val.down { color:var(--red); }
+  .card-price-val.hit { color:var(--gold); text-shadow:0 0 10px rgba(255,215,0,0.4); }
+
+  .card-details { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:8px; }
+  .detail-box { background:rgba(255,215,0,0.03); border:1px solid var(--border); border-radius:5px; padding:6px 8px; text-align:center; }
+  .detail-v { font-family:'Orbitron',monospace; font-size:11px; font-weight:700; }
+  .detail-l { font-size:9px; color:var(--muted); letter-spacing:1px; margin-top:1px; }
+
+  .signal-wrap { margin-bottom:8px; }
+  .signal-label { display:flex; justify-content:space-between; font-size:9px; color:var(--muted); font-family:'Share Tech Mono',monospace; margin-bottom:3px; }
+  .signal-bg { height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .signal-fill { height:100%; border-radius:2px; transition:width 0.8s ease; }
+
+  .verdict { padding:6px 10px; border-radius:6px; font-family:'Share Tech Mono',monospace; font-size:10px; }
+  .verdict.buy { background:rgba(0,255,136,0.06); color:var(--green); border:1px solid rgba(0,255,136,0.15); }
+  .verdict.sell { background:rgba(255,34,68,0.06); color:var(--red); border:1px solid rgba(255,34,68,0.15); }
+  .verdict.neutral { background:rgba(255,215,0,0.06); color:var(--gold); border:1px solid rgba(255,215,0,0.15); }
+
+  .act-btn { width:100%; margin-top:8px; padding:8px; border-radius:5px; font-family:'Orbitron',monospace; font-size:10px; letter-spacing:1px; cursor:pointer; text-align:center; text-decoration:none; display:block; background:rgba(255,215,0,0.08); color:var(--gold); border:1px solid rgba(255,215,0,0.2); transition:all 0.2s; }
+
+  .empty { text-align:center; padding:40px 20px; color:var(--muted); font-family:'Share Tech Mono',monospace; font-size:11px; line-height:2.5; }
+
+  .bottom-bar { position:fixed; bottom:0; left:0; right:0; background:rgba(3,2,0,0.97); border-top:1px solid var(--border); z-index:50; max-height:75px; overflow:hidden; }
+  #alert-log { padding:5px 12px; display:flex; flex-direction:column; gap:3px; }
+  .alert-item { font-family:'Share Tech Mono',monospace; font-size:10px; display:flex; gap:8px; align-items:center; }
+
+  /* CLEARS */
+  .filter-bar { background:var(--bg2); border-bottom:1px solid var(--border); padding:8px 12px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; position:relative; z-index:10; }
+  .clr-btn { padding:5px 10px; border-radius:4px; cursor:pointer; font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; background:transparent; transition:all 0.2s; border:1px solid; }
+</style>
+</head>
+<body>
+
+<div id="alert-banner"></div>
+
+<!-- HEADER -->
+<header>
+  <div>
+    <div class="logo">🥇 GOLD DETECTOR</div>
+    <div class="logo-sub">XAU/USD · GLD · GC FUTURES · TEMPS RÉEL</div>
+  </div>
+  <div class="conn-pill">
+    <div class="dot" id="dot"></div>
+    <span id="conn-txt">OFF</span>
+  </div>
+</header>
+
+<!-- PRICE DISPLAY -->
+<div class="price-display">
+  <div class="price-main">
+    <div class="price-label">XAU/USD — OR SPOT</div>
+    <div class="price-val" id="gold-price">$—</div>
+    <div class="price-change" id="gold-change">— —%</div>
+  </div>
+  <div class="price-mini">
+    <div class="price-mini-val" id="gld-price">$—</div>
+    <div class="price-mini-lbl">GLD ETF</div>
+  </div>
+  <div class="price-mini">
+    <div class="price-mini-val" id="silver-price">$—</div>
+    <div class="price-mini-lbl">ARGENT XAG</div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="control-bar">
+  <button class="ctrl-btn ctrl-start" id="btn-start" onclick="startMonitor()">▶ START</button>
+  <button class="ctrl-btn ctrl-pause" id="btn-pause" onclick="togglePause()">⏸ PAUSE</button>
+  <button class="ctrl-btn ctrl-stop" id="btn-stop" onclick="stopMonitor()">■ STOP</button>
+</div>
+
+<!-- ALERT CONFIG -->
+<div class="alert-config">
+  <div class="cfg-title">🎯 ALERTES PRIX EXACT</div>
+  <div class="cfg-row">
+    <span class="cfg-label">Prix cible $</span>
+    <input type="number" id="target-price" placeholder="ex: 3200" step="1">
+    <button class="add-btn" onclick="addPriceAlert()">+ AJOUTER</button>
+  </div>
+  <div id="price-alerts-list"></div>
+</div>
+
+<!-- FILTER / CLEAR -->
+<div class="filter-bar">
+  <span style="font-size:9px;color:var(--muted);letter-spacing:1px">EFFACER :</span>
+  <button class="clr-btn" onclick="clearAll()" style="border-color:var(--red);color:var(--red)">🗑 TOUT</button>
+  <button class="clr-btn" onclick="clearByType('buy')" style="border-color:var(--green);color:var(--green)">✕ ACHATS</button>
+  <button class="clr-btn" onclick="clearByType('sell')" style="border-color:var(--red);color:var(--red)">✕ VENTES</button>
+  <button class="clr-btn" onclick="clearByType('price-hit')" style="border-color:var(--gold);color:var(--gold)">✕ PRIX ATTEINTS</button>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat"><div class="stat-v" id="s-total">0</div><div class="stat-l">Signaux</div></div>
+  <div class="stat"><div class="stat-v" id="s-buy" style="color:var(--green)">0</div><div class="stat-l">Achats</div></div>
+  <div class="stat"><div class="stat-v" id="s-sell" style="color:var(--red)">0</div><div class="stat-l">Ventes</div></div>
+</div>
+
+<!-- FEED -->
+<div id="feed">
+  <div class="empty" id="empty">
+    🥇 GOLD DETECTOR<br>
+    ━━━━━━━━━━━━━━━━━━━━<br>
+    SURVEILLANCE OR EN TEMPS RÉEL<br>
+    XAU/USD · GLD · GC FUTURES<br>
+    <span style="font-size:9px;color:rgba(255,215,0,0.2)">Appuie ▶ START</span>
+  </div>
+</div>
+
+<div class="bottom-bar"><div id="alert-log"></div></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let running = false;
+let paused = false;
+let intervalId = null;
+let total = 0, buyCount = 0, sellCount = 0;
+let lastGoldPrice = null;
+let priceAlerts = [];
+let triggeredAlerts = new Set();
+
+function now() { return new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+
+// ============================================================
+// FETCH GOLD DATA — Yahoo Finance (XAU=X, GLD, GC=F)
+// ============================================================
+async function fetchGoldPrice() {
+  try {
+    // Fetch XAU/USD spot
+    const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?interval=1m&range=1d');
+    const data = await res.json();
+    const result = data?.chart?.result?.[0];
+    if (!result) return null;
+    const meta = result.meta;
+    return {
+      price: meta.regularMarketPrice,
+      prevClose: meta.chartPreviousClose || meta.previousClose,
+      high: meta.regularMarketDayHigh,
+      low: meta.regularMarketDayLow,
+      volume: meta.regularMarketVolume,
+      source: 'GC=F (Gold Futures)'
+    };
+  } catch(e) { return null; }
+}
+
+async function fetchGLD() {
+  try {
+    const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/GLD?interval=1m&range=1d');
+    const data = await res.json();
+    const meta = data?.chart?.result?.[0]?.meta;
+    if (!meta) return null;
+    return { price: meta.regularMarketPrice, change: meta.regularMarketPrice - (meta.chartPreviousClose || meta.previousClose) };
+  } catch(e) { return null; }
+}
+
+async function fetchSilver() {
+  try {
+    const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/SI%3DF?interval=1m&range=1d');
+    const data = await res.json();
+    const meta = data?.chart?.result?.[0]?.meta;
+    return meta ? meta.regularMarketPrice : null;
+  } catch(e) { return null; }
+}
+
+// ============================================================
+// DETECT SIGNIFICANT MOVES
+// ============================================================
+function analyzeGoldMove(current, previous) {
+  if (!previous) return null;
+
+  const priceDiff = current.price - previous.price;
+  const pricePct = (priceDiff / previous.price) * 100;
+  const volChange = current.volume && previous.volume ? current.volume / previous.volume : 1;
+
+  // Only show significant moves
+  if (Math.abs(pricePct) < 0.1 && volChange < 1.3) return null;
+
+  const isBuy = priceDiff > 0;
+  const signal = Math.min(Math.round(Math.abs(pricePct) * 50 + (volChange > 1 ? (volChange - 1) * 30 : 0)), 99);
+
+  return { isBuy, priceDiff, pricePct, volChange, signal };
+}
+
+// ============================================================
+// CHECK PRICE ALERTS
+// ============================================================
+function checkPriceAlerts(price) {
+  priceAlerts.forEach(target => {
+    const key = `${target}_${Math.floor(price)}`;
+    if (triggeredAlerts.has(key)) return;
+
+    const diff = Math.abs(price - target);
+    const pct = (diff / target) * 100;
+
+    if (pct <= 0.15) { // within 0.15%
+      triggeredAlerts.add(key);
+      addPriceHitCard(price, target);
+      triggerBigAlert(`🎯 PRIX ATTEINT — OR $${price.toFixed(2)} — CIBLE $${target}`);
+    }
+  });
+}
+
+// ============================================================
+// ADD CARDS
+// ============================================================
+function addGoldMoveCard(goldData, analysis) {
+  document.getElementById('empty')?.remove();
+  total++;
+  if (analysis.isBuy) buyCount++; else sellCount++;
+  updateStats();
+
+  const feed = document.getElementById('feed');
+  const card = document.createElement('div');
+  const type = analysis.isBuy ? 'buy' : 'sell';
+  card.className = `card ${type}`;
+  card.dataset.type = type;
+
+  const color = analysis.isBuy ? 'var(--green)' : 'var(--red)';
+  const sign = analysis.isBuy ? '+' : '';
+  const volStr = goldData.volume >= 1000 ? (goldData.volume/1000).toFixed(1)+'K' : goldData.volume?.toString() || '—';
+  const highStr = goldData.high ? '$'+goldData.high.toFixed(2) : '—';
+  const lowStr = goldData.low ? '$'+goldData.low.toFixed(2) : '—';
+
+  const verdictText = analysis.isBuy
+    ? `📈 PRESSION ACHETEUSE — +${analysis.pricePct.toFixed(3)}% en temps réel`
+    : `📉 PRESSION VENDEUSE — ${analysis.pricePct.toFixed(3)}% en temps réel`;
+
+  card.innerHTML = `
+    <button class="card-close" onclick="this.closest('.card').remove()">✕</button>
+    <div class="card-header">
+      <span class="card-badge ${analysis.isBuy?'badge-buy':'badge-sell'}">${analysis.isBuy?'🟢 ACHAT':'🔴 VENTE'}</span>
+      <span class="card-badge badge-src">XAU/USD</span>
+      <span style="margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted)">${now()}</span>
+    </div>
+    <div class="card-price-val ${analysis.isBuy?'up':'down'}">$${goldData.price.toFixed(2)} <span style="font-size:14px">${sign}${analysis.priceDiff.toFixed(2)}</span></div>
+    <div class="card-details">
+      <div class="detail-box"><div class="detail-v" style="color:${color}">${sign}${analysis.pricePct.toFixed(3)}%</div><div class="detail-l">VARIATION</div></div>
+      <div class="detail-box"><div class="detail-v" style="color:var(--cyan)">${volStr}</div><div class="detail-l">VOLUME</div></div>
+      <div class="detail-box"><div class="detail-v" style="color:var(--gold)">${analysis.volChange.toFixed(1)}x</div><div class="detail-l">VOL RATIO</div></div>
+    </div>
+    <div class="card-details">
+      <div class="detail-box"><div class="detail-v" style="color:var(--green)">${highStr}</div><div class="detail-l">HAUT</div></div>
+      <div class="detail-box"><div class="detail-v" style="color:var(--red)">${lowStr}</div><div class="detail-l">BAS</div></div>
+      <div class="detail-box"><div class="detail-v" style="color:var(--muted)">$${(goldData.prevClose||0).toFixed(2)}</div><div class="detail-l">CLÔTURE</div></div>
+    </div>
+    <div class="signal-wrap">
+      <div class="signal-label"><span>FORCE DU MOUVEMENT</span><span style="color:${color}">${analysis.signal}%</span></div>
+      <div class="signal-bg"><div class="signal-fill" style="width:${analysis.signal}%;background:${color}"></div></div>
+    </div>
+    <div class="verdict ${analysis.isBuy?'buy':'sell'}">${verdictText}</div>
+    <a class="act-btn" href="https://finance.yahoo.com/quote/GC=F" target="_blank">→ VOIR GC FUTURES SUR YAHOO</a>
+  `;
+
+  feed.insertBefore(card, feed.firstChild);
+  if (feed.querySelectorAll('.card').length > 50) feed.lastElementChild.remove();
+  if (analysis.signal >= 50) triggerBigAlert(`🥇 OR ${analysis.isBuy?'📈 ACHAT':'📉 VENTE'} — $${goldData.price.toFixed(2)} — ${sign}${analysis.pricePct.toFixed(3)}%`);
+}
+
+function addPriceHitCard(price, target) {
+  document.getElementById('empty')?.remove();
+  total++; updateStats();
+
+  const feed = document.getElementById('feed');
+  const card = document.createElement('div');
+  card.className = 'card price-hit';
+  card.dataset.type = 'price-hit';
+
+  card.innerHTML = `
+    <button class="card-close" onclick="this.closest('.card').remove()">✕</button>
+    <div class="card-header">
+      <span class="card-badge badge-price">🎯 PRIX ATTEINT</span>
+      <span style="margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted)">${now()}</span>
+    </div>
+    <div class="card-price-val hit">$${price.toFixed(2)}</div>
+    <div class="card-details">
+      <div class="detail-box" style="grid-column:span 1"><div class="detail-v" style="color:var(--gold2)">$${target}</div><div class="detail-l">CIBLE</div></div>
+      <div class="detail-box" style="grid-column:span 2"><div class="detail-v" style="color:var(--gold);font-size:10px">PRIX EXACT ATTEINT ✓</div><div class="detail-l">STATUT</div></div>
+    </div>
+    <div class="verdict neutral">🎯 Ta cible de $${target} a été atteinte — Or à $${price.toFixed(2)}</div>
+    <a class="act-btn" href="https://finance.yahoo.com/quote/GC=F" target="_blank">→ VOIR SUR YAHOO FINANCE</a>
+  `;
+
+  feed.insertBefore(card, feed.firstChild);
+}
+
+// ============================================================
+// PRICE ALERTS MANAGEMENT
+// ============================================================
+function addPriceAlert() {
+  const val = parseFloat(document.getElementById('target-price').value);
+  if (!val || val <= 0) return;
+  if (priceAlerts.includes(val)) return;
+  priceAlerts.push(val);
+  document.getElementById('target-price').value = '';
+  renderPriceAlerts();
+}
+
+function removePriceAlert(val) {
+  priceAlerts = priceAlerts.filter(p => p !== val);
+  renderPriceAlerts();
+}
+
+function renderPriceAlerts() {
+  const list = document.getElementById('price-alerts-list');
+  list.innerHTML = priceAlerts.map(p => `
+    <div class="price-alert-tag">
+      🎯 $${p}
+      <span class="remove" onclick="removePriceAlert(${p})">✕</span>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// ALERTS
+// ============================================================
+function triggerBigAlert(msg) {
+  const banner = document.getElementById('alert-banner');
+  banner.textContent = msg;
+  banner.style.display = 'block';
+  setTimeout(() => banner.style.display = 'none', 8000);
+  playSound();
+
+  const log = document.getElementById('alert-log');
+  const item = document.createElement('div');
+  item.className = 'alert-item';
+  item.innerHTML = `<span style="color:var(--gold)">🥇</span><span style="color:#fff">${msg}</span><span style="margin-left:auto;color:var(--muted)">${now()}</span>`;
+  log.insertBefore(item, log.firstChild);
+  if (log.querySelectorAll('.alert-item').length > 3) log.lastElementChild.remove();
+}
+
+function updateStats() {
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-buy').textContent = buyCount;
+  document.getElementById('s-sell').textContent = sellCount;
+}
+
+function clearAll() {
+  document.getElementById('feed').querySelectorAll('.card').forEach(c => c.remove());
+  total = 0; buyCount = 0; sellCount = 0; updateStats();
+  document.getElementById('feed').innerHTML = '<div class="empty">🗑 EFFACÉ</div>';
+}
+function clearByType(type) { document.querySelectorAll(`.card[data-type="${type}"]`).forEach(c => c.remove()); }
+
+function playSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [[440,0],[554,0.12],[659,0.24],[880,0.36]].forEach(([f,t]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = f; o.type = 'sine';
+      g.gain.setValueAtTime(0.12, ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+t+0.1);
+      o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+0.1);
+    });
+  } catch(e) {}
+}
+
+// ============================================================
+// MAIN LOOP — Fetch every 15 seconds
+// ============================================================
+async function fetchCycle() {
+  if (!running || paused) return;
+  setStatus('loading', 'CHARGEMENT...');
+
+  try {
+    const [goldData, gldData, silverPrice] = await Promise.all([
+      fetchGoldPrice(),
+      fetchGLD(),
+      fetchSilver()
+    ]);
+
+    if (goldData) {
+      // Update price display
+      const change = goldData.price - (goldData.prevClose || goldData.price);
+      const changePct = goldData.prevClose ? (change / goldData.prevClose * 100) : 0;
+      document.getElementById('gold-price').textContent = '$' + goldData.price.toFixed(2);
+      const changeEl = document.getElementById('gold-change');
+      const sign = change >= 0 ? '+' : '';
+      changeEl.textContent = `${sign}$${change.toFixed(2)} (${sign}${changePct.toFixed(2)}%)`;
+      changeEl.className = 'price-change ' + (change >= 0 ? 'up' : 'down');
+
+      // Check price alerts
+      checkPriceAlerts(goldData.price);
+
+      // Analyze move
+      if (lastGoldPrice) {
+        const analysis = analyzeGoldMove(goldData, lastGoldPrice);
+        if (analysis) addGoldMoveCard(goldData, analysis);
+      }
+      lastGoldPrice = goldData;
+    }
+
+    if (gldData) {
+      document.getElementById('gld-price').textContent = '$' + gldData.price.toFixed(2);
+    }
+
+    if (silverPrice) {
+      document.getElementById('silver-price').textContent = '$' + silverPrice.toFixed(2);
+    }
+
+    setStatus('live', 'LIVE');
+  } catch(e) {
+    setStatus('live', 'LIVE');
+  }
+
+  if (running && !paused) intervalId = setTimeout(fetchCycle, 15000);
+}
+
+// ============================================================
+// CONTROLS
+// ============================================================
+function startMonitor() {
+  if (running) return;
+  running = true; paused = false;
+  document.getElementById('btn-start').classList.add('active');
+  document.getElementById('btn-pause').classList.remove('active');
+  document.getElementById('btn-pause').textContent = '⏸ PAUSE';
+  lastGoldPrice = null;
+  fetchCycle();
+}
+
+function togglePause() {
+  if (!running) return;
+  paused = !paused;
+  if (paused) {
+    if (intervalId) clearTimeout(intervalId);
+    setStatus('pause', '⏸ PAUSE');
+    document.getElementById('btn-pause').classList.add('active');
+    document.getElementById('btn-pause').textContent = '▶ REPRENDRE';
+  } else {
+    setStatus('live', 'LIVE');
+    document.getElementById('btn-pause').classList.remove('active');
+    document.getElementById('btn-pause').textContent = '⏸ PAUSE';
+    fetchCycle();
+  }
+}
+
+function stopMonitor() {
+  running = false; paused = false;
+  if (intervalId) clearTimeout(intervalId);
+  setStatus('off', 'OFF');
+  document.getElementById('btn-start').classList.remove('active');
+  document.getElementById('btn-pause').classList.remove('active');
+  document.getElementById('btn-pause').textContent = '⏸ PAUSE';
+}
+
+function setStatus(state, label) {
+  document.getElementById('dot').className = 'dot' + (state==='live'?' live':state==='loading'?' loading':state==='pause'?' pause':'');
+  const txt = document.getElementById('conn-txt');
+  txt.className = state==='live'?'live':state==='loading'?'loading':state==='pause'?'pause':'';
+  txt.textContent = label;
+}
+</script>
+</body>
+</html>
