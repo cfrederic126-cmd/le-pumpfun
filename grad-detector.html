@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GRADUATION DETECTOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#020510; --bg2:#050a18; --panel:#080f20; --border:#0d1830;
+    --green:#00ff88; --red:#ff2244; --gold:#ffd700; --gold2:#ffaa00;
+    --cyan:#00ddff; --purple:#aa44ff; --orange:#ff6622;
+    --text:#a0c0e0; --muted:#2a4060;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; overflow-x:hidden; }
+
+  body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(0,255,136,0.03) 0%, transparent 60%); pointer-events:none; z-index:0; }
+
+  header { position:sticky; top:0; z-index:100; background:rgba(2,5,16,0.97); border-bottom:1px solid var(--border); padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .logo { font-family:'Orbitron',monospace; font-size:14px; font-weight:900; letter-spacing:2px; background:linear-gradient(90deg,var(--green),var(--cyan),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .logo-sub { font-size:9px; color:var(--muted); letter-spacing:2px; font-family:'Share Tech Mono',monospace; margin-top:2px; }
+  .conn-pill { display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--border); padding:5px 12px; border-radius:20px; font-family:'Share Tech Mono',monospace; font-size:10px; }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--muted); transition:all 0.3s; }
+  .dot.live { background:var(--green); box-shadow:0 0 10px var(--green); animation:pulse 1.5s infinite; }
+  .dot.loading { background:var(--gold); box-shadow:0 0 8px var(--gold); animation:pulse 0.4s infinite; }
+  #conn-txt { color:var(--muted); }
+  #conn-txt.live { color:var(--green); }
+  #conn-txt.loading { color:var(--gold); }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  /* ALERT BANNER */
+  #alert-banner {
+    display:none; padding:12px 16px;
+    background:linear-gradient(90deg,var(--green),var(--cyan),var(--green));
+    background-size:200%; animation:scrollbg 1.5s linear infinite;
+    font-family:'Orbitron',monospace; font-size:13px;
+    letter-spacing:2px; color:#000; text-align:center; font-weight:900;
+    border-bottom:2px solid var(--cyan); z-index:99;
+  }
+  @keyframes scrollbg { 0%{background-position:0%}100%{background-position:200%} }
+
+  /* STATS LIVE */
+  .live-stats {
+    background:var(--bg2); border-bottom:1px solid var(--border);
+    padding:10px 16px; display:grid; grid-template-columns:repeat(3,1fr);
+    gap:8px; position:relative; z-index:10;
+  }
+  .ls-box { background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:8px 10px; text-align:center; }
+  .ls-val { font-family:'Orbitron',monospace; font-size:16px; font-weight:700; }
+  .ls-lbl { font-size:9px; color:var(--muted); letter-spacing:1px; margin-top:2px; }
+
+  /* CONTROLS */
+  .ctrl-bar { background:var(--bg2); border-bottom:1px solid var(--border); padding:10px 16px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; position:relative; z-index:10; }
+  .ctrl-btn { padding:12px 6px; border-radius:6px; font-family:'Orbitron',monospace; font-size:11px; letter-spacing:1px; font-weight:700; cursor:pointer; text-align:center; transition:all 0.2s; border:2px solid; }
+  .ctrl-start { border-color:var(--green); color:var(--green); background:rgba(0,255,136,0.06); }
+  .ctrl-start.active { background:var(--green); color:#000; }
+  .ctrl-pause { border-color:var(--gold); color:var(--gold); background:rgba(255,215,0,0.06); }
+  .ctrl-pause.active { background:var(--gold); color:#000; }
+  .ctrl-stop { border-color:var(--red); color:var(--red); background:rgba(255,34,68,0.06); }
+
+  /* TABS */
+  .tabs { background:var(--bg2); border-bottom:1px solid var(--border); display:flex; position:relative; z-index:10; }
+  .tab { flex:1; padding:8px 4px; text-align:center; font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; }
+  .tab.active { color:var(--green); border-bottom-color:var(--green); }
+
+  /* FILTER */
+  .filter-bar { background:var(--bg2); border-bottom:1px solid var(--border); padding:8px 12px; display:flex; gap:5px; flex-wrap:wrap; align-items:center; position:relative; z-index:10; }
+  .clr-btn { padding:4px 10px; border-radius:4px; cursor:pointer; font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; background:transparent; border:1px solid; transition:all 0.2s; }
+
+  /* STATS ROW */
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid var(--border); background:var(--bg2); position:relative; z-index:10; }
+  .stat { padding:7px 8px; border-right:1px solid var(--border); }
+  .stat:last-child { border-right:none; }
+  .stat-v { font-family:'Orbitron',monospace; font-size:15px; color:var(--green); font-weight:700; }
+  .stat-l { font-size:8px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-top:1px; }
+
+  /* FEED */
+  #feed { padding:10px; display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:calc(100vh - 340px); padding-bottom:90px; position:relative; z-index:10; }
+  #feed::-webkit-scrollbar { width:3px; }
+  #feed::-webkit-scrollbar-thumb { background:var(--border); }
+
+  /* CARDS */
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px 14px; animation:slideIn 0.4s cubic-bezier(0.34,1.56,0.64,1); position:relative; overflow:hidden; }
+
+  /* GRADUATED CARD — special glow */
+  .card.graduated {
+    border-color:var(--green);
+    background:linear-gradient(135deg,var(--panel),rgba(0,255,136,0.07));
+    box-shadow:0 0 25px rgba(0,255,136,0.15), inset 0 0 20px rgba(0,255,136,0.05);
+  }
+  .card.graduated::before {
+    content:'🎓 GRADUÉE !';
+    position:absolute; top:8px; right:10px;
+    font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px;
+    color:var(--green); font-weight:900;
+    animation:blink 0.8s infinite;
+  }
+
+  /* APPROACHING CARD — warning */
+  .card.approaching {
+    border-color:var(--gold);
+    background:linear-gradient(135deg,var(--panel),rgba(255,215,0,0.05));
+    box-shadow:0 0 15px rgba(255,215,0,0.1);
+  }
+  .card.approaching::before {
+    content:'⚡ APPROCHE';
+    position:absolute; top:8px; right:10px;
+    font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px;
+    color:var(--gold); font-weight:900;
+  }
+
+  /* WATCHING CARD */
+  .card.watching { border-color:rgba(0,221,255,0.25); }
+
+  @keyframes slideIn { from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)} }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.2} }
+
+  .card-close { position:absolute; top:8px; left:8px; width:26px; height:26px; border-radius:50%; background:rgba(255,34,68,0.15); border:1px solid rgba(255,34,68,0.35); color:var(--red); font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .card-close:hover { background:rgba(255,34,68,0.35); }
+
+  .card-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; padding-left:34px; }
+  .badge { padding:3px 8px; border-radius:4px; font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; font-weight:700; }
+  .badge-grad { background:rgba(0,255,136,0.15); color:var(--green); border:1px solid rgba(0,255,136,0.3); }
+  .badge-approach { background:rgba(255,215,0,0.12); color:var(--gold); border:1px solid rgba(255,215,0,0.25); }
+  .badge-watch { background:rgba(0,221,255,0.1); color:var(--cyan); border:1px solid rgba(0,221,255,0.2); }
+
+  .token-name { font-family:'Orbitron',monospace; font-size:18px; font-weight:900; color:#fff; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card-time { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--muted); flex-shrink:0; }
+
+  /* PROGRESS BAR */
+  .progress-section { margin-bottom:10px; }
+  .progress-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+  .progress-label { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); }
+  .progress-pct { font-family:'Orbitron',monospace; font-size:14px; font-weight:700; }
+  .progress-bg { height:8px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+  .progress-fill { height:100%; border-radius:4px; transition:width 0.8s ease; position:relative; }
+  .progress-fill::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent); animation:shimmer 2s infinite; }
+  @keyframes shimmer { from{transform:translateX(-100%)}to{transform:translateX(100%)} }
+
+  /* DETAILS */
+  .detail-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-bottom:8px; }
+  .dbox { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:5px; padding:6px 8px; text-align:center; }
+  .dval { font-family:'Orbitron',monospace; font-size:12px; font-weight:700; }
+  .dlbl { font-size:8px; color:var(--muted); letter-spacing:1px; margin-top:1px; }
+
+  .verdict { padding:6px 10px; border-radius:6px; font-family:'Share Tech Mono',monospace; font-size:10px; margin-bottom:8px; }
+  .v-green { background:rgba(0,255,136,0.06); color:var(--green); border:1px solid rgba(0,255,136,0.15); }
+  .v-gold { background:rgba(255,215,0,0.06); color:var(--gold); border:1px solid rgba(255,215,0,0.15); }
+  .v-cyan { background:rgba(0,221,255,0.06); color:var(--cyan); border:1px solid rgba(0,221,255,0.15); }
+
+  .card-btns { display:flex; gap:6px; }
+  .act-btn { flex:1; padding:8px; border-radius:5px; font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; cursor:pointer; text-align:center; text-decoration:none; display:block; transition:all 0.2s; border:1px solid; }
+  .btn-pump { background:rgba(0,255,136,0.08); color:var(--green); border-color:rgba(0,255,136,0.2); }
+  .btn-ray { background:rgba(170,68,255,0.08); color:var(--purple); border-color:rgba(170,68,255,0.2); }
+  .btn-dex { background:rgba(0,221,255,0.08); color:var(--cyan); border-color:rgba(0,221,255,0.2); }
+
+  .empty { text-align:center; padding:40px 20px; color:var(--muted); font-family:'Share Tech Mono',monospace; font-size:11px; line-height:2.5; }
+
+  .bottom-bar { position:fixed; bottom:0; left:0; right:0; background:rgba(2,5,16,0.97); border-top:1px solid var(--border); z-index:50; max-height:75px; overflow:hidden; }
+  #log { padding:5px 12px; display:flex; flex-direction:column; gap:3px; }
+  .log-item { font-family:'Share Tech Mono',monospace; font-size:10px; display:flex; gap:8px; align-items:center; }
+
+  /* MODAL */
+  #modal { display:none; position:fixed; inset:0; background:rgba(2,5,16,0.95); z-index:200; align-items:center; justify-content:center; padding:16px; }
+  #modal.show { display:flex; }
+  .modal-box { background:var(--panel); border:2px solid var(--green); border-radius:12px; padding:20px; max-width:340px; width:100%; box-shadow:0 0 40px rgba(0,255,136,0.2); animation:slideIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  .modal-title { font-family:'Orbitron',monospace; font-size:20px; font-weight:900; color:var(--green); letter-spacing:2px; }
+  .modal-name { font-family:'Orbitron',monospace; font-size:26px; font-weight:900; color:#fff; margin:6px 0; }
+  .modal-mc { font-family:'Orbitron',monospace; font-size:20px; color:var(--gold); margin:4px 0; }
+  .modal-detail { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); line-height:1.8; margin:8px 0; }
+  .modal-btns { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+  .modal-btn { display:block; width:100%; padding:12px; border-radius:6px; font-family:'Orbitron',monospace; font-size:11px; letter-spacing:2px; text-align:center; text-decoration:none; font-weight:700; border:none; cursor:pointer; }
+  .mbtn-pump { background:var(--green); color:#000; }
+  .mbtn-ray { background:var(--purple); color:#fff; }
+  .mbtn-dex { background:var(--cyan); color:#000; }
+  .mbtn-close { background:transparent; color:var(--muted); border:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<div id="alert-banner"></div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div class="modal-box">
+    <div class="modal-title">🎓 TOKEN GRADUÉE !</div>
+    <div class="modal-name" id="m-name"></div>
+    <div class="modal-mc" id="m-mc"></div>
+    <div class="modal-detail" id="m-detail"></div>
+    <div class="modal-btns">
+      <a class="modal-btn mbtn-pump" id="m-pump" target="_blank">→ PUMP.FUN</a>
+      <a class="modal-btn mbtn-ray" id="m-ray" target="_blank">→ RAYDIUM</a>
+      <a class="modal-btn mbtn-dex" id="m-dex" target="_blank">→ DEXSCREENER</a>
+      <button class="modal-btn mbtn-close" onclick="closeModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div>
+    <div class="logo">🎓 GRAD DETECTOR</div>
+    <div class="logo-sub">PUMP.FUN → RAYDIUM · TEMPS RÉEL</div>
+  </div>
+  <div class="conn-pill">
+    <div class="dot" id="dot"></div>
+    <span id="conn-txt">OFF</span>
+  </div>
+</header>
+
+<!-- LIVE STATS -->
+<div class="live-stats">
+  <div class="ls-box">
+    <div class="ls-val" id="ls-graduated" style="color:var(--green)">0</div>
+    <div class="ls-lbl">🎓 GRADUÉES</div>
+  </div>
+  <div class="ls-box">
+    <div class="ls-val" id="ls-approaching" style="color:var(--gold)">0</div>
+    <div class="ls-lbl">⚡ APPROCHENT</div>
+  </div>
+  <div class="ls-box">
+    <div class="ls-val" id="ls-watching" style="color:var(--cyan)">0</div>
+    <div class="ls-lbl">👁 SURVEILLÉES</div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="ctrl-bar">
+  <button class="ctrl-btn ctrl-start" id="btn-start" onclick="startMonitor()">▶ START</button>
+  <button class="ctrl-btn ctrl-pause" id="btn-pause" onclick="togglePause()">⏸ PAUSE</button>
+  <button class="ctrl-btn ctrl-stop" onclick="stopMonitor()">■ STOP</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="setTab('all',this)">TOUT</div>
+  <div class="tab" onclick="setTab('graduated',this)">🎓 GRAD</div>
+  <div class="tab" onclick="setTab('approaching',this)">⚡ APPROCHE</div>
+  <div class="tab" onclick="setTab('watching',this)">👁 SURVEILLE</div>
+</div>
+
+<!-- FILTERS -->
+<div class="filter-bar">
+  <span style="font-size:9px;color:var(--muted);letter-spacing:1px">EFFACER :</span>
+  <button class="clr-btn" onclick="clearAll()" style="border-color:var(--red);color:var(--red)">🗑 TOUT</button>
+  <button class="clr-btn" onclick="clearType('graduated')" style="border-color:var(--green);color:var(--green)">✕ GRAD</button>
+  <button class="clr-btn" onclick="clearType('approaching')" style="border-color:var(--gold);color:var(--gold)">✕ APPROCHE</button>
+  <button class="clr-btn" onclick="clearType('watching')" style="border-color:var(--cyan);color:var(--cyan)">✕ SURVEILLE</button>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat"><div class="stat-v" id="s-total">0</div><div class="stat-l">Total</div></div>
+  <div class="stat"><div class="stat-v" id="s-grad" style="color:var(--green)">0</div><div class="stat-l">Graduées</div></div>
+  <div class="stat"><div class="stat-v" id="s-app" style="color:var(--gold)">0</div><div class="stat-l">Approchent</div></div>
+  <div class="stat"><div class="stat-v" id="s-watch" style="color:var(--cyan)">0</div><div class="stat-l">Surveille</div></div>
+</div>
+
+<!-- FEED -->
+<div id="feed">
+  <div class="empty" id="empty">
+    🎓 GRADUATION DETECTOR<br>
+    ━━━━━━━━━━━━━━━━━━━━<br>
+    DÉTECTE LES TOKENS QUI GRADUENT<br>
+    PUMP.FUN → RAYDIUM EN TEMPS RÉEL<br>
+    <span style="font-size:9px;color:rgba(0,255,136,0.2)">▶ START pour commencer</span>
+  </div>
+</div>
+
+<div class="bottom-bar"><div id="log"></div></div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const GRAD_MC = 69000;      // graduation threshold $69K
+const APPROACH_MC = 34000;  // your alert threshold $34K
+const WATCH_MC = 20000;     // start watching at $20K
+
+// ============================================================
+// STATE
+// ============================================================
+let ws = null;
+let running = false, paused = false;
+let gradCount = 0, approachCount = 0, watchCount = 0, total = 0;
+let trackedTokens = {}; // mint -> {name, mc, status}
+
+function now() { return new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+function fmtMC(n) {
+  if (n >= 1000000) return '$'+(n/1000000).toFixed(2)+'M';
+  if (n >= 1000) return '$'+(n/1000).toFixed(1)+'K';
+  return '$'+Math.round(n);
+}
+function short(a) { return a ? a.slice(0,6)+'…'+a.slice(-4) : ''; }
+
+// ============================================================
+// PROGRESS BAR
+// ============================================================
+function getProgress(mc) {
+  return Math.min((mc / GRAD_MC) * 100, 100);
+}
+
+function getProgressColor(mc) {
+  const pct = getProgress(mc);
+  if (pct >= 100) return 'var(--green)';
+  if (pct >= 50) return 'var(--gold)';
+  return 'var(--cyan)';
+}
+
+// ============================================================
+// ADD / UPDATE CARD
+// ============================================================
+function addCard(data) {
+  document.getElementById('empty')?.remove();
+  const feed = document.getElementById('feed');
+
+  // Check if card already exists — update it
+  const existing = document.getElementById(`card-${data.mint}`);
+  if (existing) {
+    updateCard(existing, data);
+    return;
+  }
+
+  total++;
+  updateCounters(data.status);
+
+  const card = document.createElement('div');
+  card.className = `card ${data.status}`;
+  card.id = `card-${data.mint}`;
+  card.dataset.type = data.status;
+  card.innerHTML = buildCardHTML(data);
+
+  const currentTab = document.querySelector('.tab.active')?.dataset?.tab || 'all';
+  if (currentTab !== 'all' && data.status !== currentTab) card.style.display = 'none';
+
+  feed.insertBefore(card, feed.firstChild);
+  if (feed.querySelectorAll('.card').length > 80) feed.lastElementChild.remove();
+}
+
+function updateCard(card, data) {
+  const wasStatus = card.dataset.type;
+  if (wasStatus !== data.status) {
+    card.className = `card ${data.status}`;
+    card.dataset.type = data.status;
+    updateCounters(data.status);
+    // Move to top if just graduated
+    if (data.status === 'graduated') {
+      card.parentNode.insertBefore(card, card.parentNode.firstChild);
+    }
+  }
+  card.innerHTML = buildCardHTML(data);
+}
+
+function buildCardHTML(data) {
+  const pct = getProgress(data.mc);
+  const color = getProgressColor(data.mc);
+  const badgeClass = data.status === 'graduated' ? 'badge-grad' : data.status === 'approaching' ? 'badge-approach' : 'badge-watch';
+  const badgeLabel = data.status === 'graduated' ? '🎓 GRADUÉE' : data.status === 'approaching' ? '⚡ APPROCHE' : '👁 SURVEILLE';
+
+  const remaining = Math.max(0, GRAD_MC - data.mc);
+  const pumpUrl = `https://pump.fun/${data.mint}`;
+  const rayUrl = `https://raydium.io/swap/?inputCurrency=sol&outputCurrency=${data.mint}`;
+  const dexUrl = `https://dexscreener.com/solana/${data.mint}`;
+
+  const verdictText = data.status === 'graduated'
+    ? '🎓 TOKEN GRADUÉE — Maintenant sur Raydium ! Liquidité ajoutée automatiquement.'
+    : data.status === 'approaching'
+    ? `⚡ PROCHE DE LA GRADUATION — Il manque ${fmtMC(remaining)} pour graduer !`
+    : `👁 EN SURVEILLANCE — Market cap: ${fmtMC(data.mc)}`;
+
+  const verdictClass = data.status === 'graduated' ? 'v-green' : data.status === 'approaching' ? 'v-gold' : 'v-cyan';
+
+  return `
+    <button class="card-close" onclick="this.closest('.card').remove()">✕</button>
+    <div class="card-header">
+      <span class="badge ${badgeClass}">${badgeLabel}</span>
+      <span class="token-name">${data.name || 'TOKEN'}</span>
+      <span class="card-time">${now()}</span>
+    </div>
+    <div class="progress-section">
+      <div class="progress-header">
+        <span class="progress-label">PROGRESSION VERS GRADUATION</span>
+        <span class="progress-pct" style="color:${color}">${pct.toFixed(1)}%</span>
+      </div>
+      <div class="progress-bg">
+        <div class="progress-fill" style="width:${pct}%;background:linear-gradient(90deg,var(--cyan),${color})"></div>
+      </div>
+    </div>
+    <div class="detail-row">
+      <div class="dbox">
+        <div class="dval" style="color:${color}">${fmtMC(data.mc)}</div>
+        <div class="dlbl">MKT CAP</div>
+      </div>
+      <div class="dbox">
+        <div class="dval" style="color:var(--muted)">${fmtMC(GRAD_MC)}</div>
+        <div class="dlbl">OBJECTIF</div>
+      </div>
+      <div class="dbox">
+        <div class="dval" style="color:var(--orange)">${fmtMC(remaining)}</div>
+        <div class="dlbl">RESTANT</div>
+      </div>
+    </div>
+    <div class="detail-row">
+      <div class="dbox">
+        <div class="dval" style="color:var(--purple);font-size:10px">${short(data.mint)}</div>
+        <div class="dlbl">MINT</div>
+      </div>
+      <div class="dbox">
+        <div class="dval" style="color:var(--gold)">${data.symbol || '—'}</div>
+        <div class="dlbl">SYMBOLE</div>
+      </div>
+      <div class="dbox">
+        <div class="dval" style="color:var(--cyan)">${data.solAmount ? data.solAmount.toFixed(1)+' SOL' : '—'}</div>
+        <div class="dlbl">SOL VOL</div>
+      </div>
+    </div>
+    <div class="verdict ${verdictClass}">${verdictText}</div>
+    <div class="card-btns">
+      <a class="act-btn btn-pump" href="${pumpUrl}" target="_blank">PUMP.FUN</a>
+      <a class="act-btn btn-ray" href="${rayUrl}" target="_blank">RAYDIUM</a>
+      <a class="act-btn btn-dex" href="${dexUrl}" target="_blank">DEXSCREENER</a>
+    </div>
+  `;
+}
+
+// ============================================================
+// COUNTERS
+// ============================================================
+function updateCounters(status) {
+  if (status === 'graduated') gradCount++;
+  else if (status === 'approaching') approachCount++;
+  else watchCount++;
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-grad').textContent = gradCount;
+  document.getElementById('s-app').textContent = approachCount;
+  document.getElementById('s-watch').textContent = watchCount;
+  document.getElementById('ls-graduated').textContent = gradCount;
+  document.getElementById('ls-approaching').textContent = approachCount;
+  document.getElementById('ls-watching').textContent = watchCount;
+}
+
+// ============================================================
+// WEBSOCKET — PumpPortal Real-Time
+// ============================================================
+function startMonitor() {
+  if (running) return;
+  running = true; paused = false;
+  document.getElementById('btn-start').classList.add('active');
+  document.getElementById('btn-pause').textContent = '⏸ PAUSE';
+  connectWS();
+}
+
+function connectWS() {
+  if (ws) ws.close();
+  setStatus('loading', 'CONNEXION...');
+
+  ws = new WebSocket('wss://pumpportal.fun/api/data');
+
+  ws.onopen = () => {
+    setStatus('live', 'LIVE');
+    // Subscribe to new tokens
+    ws.send(JSON.stringify({ method: 'subscribeNewToken' }));
+  };
+
+  ws.onmessage = (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      if (!paused) handleEvent(data);
+    } catch(err) {}
+  };
+
+  ws.onerror = () => setStatus('loading', 'RECONNEXION...');
+
+  ws.onclose = () => {
+    if (running && !paused) {
+      setStatus('loading', 'RECONNEXION...');
+      setTimeout(connectWS, 3000);
+    }
+  };
+}
+
+// ============================================================
+// EVENT HANDLER
+// ============================================================
+function handleEvent(data) {
+  // New token created
+  if (data.txType === 'create' || data.newTokenCreated) {
+    const mc = (data.marketCapSol || 0) * 145; // estimate USD
+    const mint = data.mint;
+    if (!mint) return;
+
+    const solPrice = 145;
+    const mcUSD = (data.marketCapSol || 0) * solPrice;
+
+    // Store token
+    trackedTokens[mint] = {
+      mint,
+      name: data.name || data.symbol || 'TOKEN',
+      symbol: data.symbol,
+      mc: mcUSD,
+      solAmount: data.solAmount || data.initialBuy || 0,
+      status: getStatus(mcUSD)
+    };
+
+    // Subscribe to this token's trades
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ method: 'subscribeTokenTrade', keys: [mint] }));
+    }
+
+    if (mcUSD >= WATCH_MC) addCard(trackedTokens[mint]);
+    return;
+  }
+
+  // Trade on existing token
+  if ((data.txType === 'buy' || data.txType === 'sell') && data.mint) {
+    const mint = data.mint;
+    const solPrice = 145;
+    const mcUSD = (data.marketCapSol || 0) * solPrice;
+
+    if (!trackedTokens[mint]) {
+      trackedTokens[mint] = {
+        mint,
+        name: data.name || data.symbol || 'TOKEN',
+        symbol: data.symbol,
+        mc: mcUSD,
+        solAmount: data.solAmount || 0,
+        status: getStatus(mcUSD)
+      };
+    } else {
+      trackedTokens[mint].mc = mcUSD;
+      trackedTokens[mint].solAmount = (trackedTokens[mint].solAmount || 0) + (data.solAmount || 0);
+    }
+
+    const token = trackedTokens[mint];
+    const prevStatus = token.status;
+    token.status = getStatus(mcUSD);
+
+    // Only show if >= WATCH_MC
+    if (mcUSD >= WATCH_MC) {
+      addCard(token);
+    }
+
+    // GRADUATION DETECTED
+    if (token.status === 'graduated' && prevStatus !== 'graduated') {
+      triggerGradAlert(token);
+    }
+
+    // APPROACHING DETECTED  
+    if (token.status === 'approaching' && prevStatus === 'watching') {
+      triggerApproachAlert(token);
+    }
+  }
+
+  // Direct graduation event from PumpPortal
+  if (data.txType === 'migrate' || data.bonded === true || data.graduated === true) {
+    const mint = data.mint;
+    if (!mint) return;
+    const token = trackedTokens[mint] || { mint, name: data.name || 'TOKEN', symbol: data.symbol, mc: GRAD_MC, solAmount: 0, status: 'graduated' };
+    token.status = 'graduated';
+    trackedTokens[mint] = token;
+    addCard(token);
+    triggerGradAlert(token);
+  }
+}
+
+function getStatus(mc) {
+  if (mc >= GRAD_MC) return 'graduated';
+  if (mc >= APPROACH_MC) return 'approaching';
+  return 'watching';
+}
+
+// ============================================================
+// ALERTS
+// ============================================================
+function triggerGradAlert(token) {
+  playSound('grad');
+  showBanner(`🎓 GRADUATION ! ${token.name} → RAYDIUM — MC: ${fmtMC(token.mc)}`);
+  showModal(token);
+  addLog(`🎓 ${token.name} GRADUÉE — ${fmtMC(token.mc)}`);
+}
+
+function triggerApproachAlert(token) {
+  playSound('approach');
+  showBanner(`⚡ ${token.name} APPROCHE LA GRADUATION — ${fmtMC(token.mc)} / ${fmtMC(GRAD_MC)}`);
+  addLog(`⚡ ${token.name} approche — ${fmtMC(token.mc)}`);
+}
+
+function showBanner(msg) {
+  const b = document.getElementById('alert-banner');
+  b.textContent = msg;
+  b.style.display = 'block';
+  setTimeout(() => b.style.display = 'none', 8000);
+}
+
+function showModal(token) {
+  document.getElementById('m-name').textContent = token.name;
+  document.getElementById('m-mc').textContent = fmtMC(token.mc);
+  document.getElementById('m-detail').textContent = `Mint: ${short(token.mint)}\nSol volume: ${token.solAmount?.toFixed(2)||'0'} SOL\nGraduée vers Raydium ✓`;
+  document.getElementById('m-pump').href = `https://pump.fun/${token.mint}`;
+  document.getElementById('m-ray').href = `https://raydium.io/swap/?inputCurrency=sol&outputCurrency=${token.mint}`;
+  document.getElementById('m-dex').href = `https://dexscreener.com/solana/${token.mint}`;
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
+
+function addLog(msg) {
+  const log = document.getElementById('log');
+  const item = document.createElement('div');
+  item.className = 'log-item';
+  item.innerHTML = `<span style="color:var(--green)">🎓</span><span style="color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${msg}</span><span style="color:var(--muted);flex-shrink:0">${now()}</span>`;
+  log.insertBefore(item, log.firstChild);
+  if (log.querySelectorAll('.log-item').length > 3) log.lastElementChild.remove();
+}
+
+function playSound(type) {
+  try {
+    const ctx = new(window.AudioContext||window.webkitAudioContext)();
+    const notes = type === 'grad'
+      ? [[523,0],[659,0.1],[784,0.2],[1047,0.3],[1319,0.4]]
+      : [[440,0],[554,0.12],[659,0.24]];
+    notes.forEach(([f,t]) => {
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=f; o.type='sine';
+      g.gain.setValueAtTime(0.12,ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.15);
+      o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+0.15);
+    });
+  } catch(e) {}
+}
+
+// ============================================================
+// CONTROLS
+// ============================================================
+function togglePause() {
+  if (!running) return;
+  paused = !paused;
+  if (paused) {
+    setStatus('pause', '⏸ PAUSE');
+    document.getElementById('btn-pause').classList.add('active');
+    document.getElementById('btn-pause').textContent = '▶ REPRENDRE';
+  } else {
+    setStatus('live', 'LIVE');
+    document.getElementById('btn-pause').classList.remove('active');
+    document.getElementById('btn-pause').textContent = '⏸ PAUSE';
+  }
+}
+
+function stopMonitor() {
+  running = false; paused = false;
+  if (ws) { ws.close(); ws = null; }
+  setStatus('off', 'OFF');
+  document.getElementById('btn-start').classList.remove('active');
+  document.getElementById('btn-pause').classList.remove('active');
+  document.getElementById('btn-pause').textContent = '⏸ PAUSE';
+}
+
+function setStatus(state, label) {
+  document.getElementById('dot').className = 'dot'+(state==='live'?' live':state==='loading'?' loading':'');
+  const txt = document.getElementById('conn-txt');
+  txt.className = state==='live'?'live':state==='loading'?'loading':'';
+  txt.textContent = label;
+}
+
+function setTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  el.dataset.tab = tab;
+  document.querySelectorAll('.card').forEach(c => {
+    c.style.display = (tab==='all'||c.dataset.type===tab) ? '' : 'none';
+  });
+}
+
+function clearAll() {
+  document.getElementById('feed').querySelectorAll('.card').forEach(c=>c.remove());
+  total=0; gradCount=0; approachCount=0; watchCount=0; updateStats();
+  document.getElementById('feed').innerHTML='<div class="empty">🗑 EFFACÉ</div>';
+}
+function clearType(t) { document.querySelectorAll(`.card.${t}`).forEach(c=>c.remove()); }
+</script>
+</body>
+</html>
