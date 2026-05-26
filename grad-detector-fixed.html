@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GRADUATION DETECTOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#020510; --bg2:#050a18; --panel:#080f20; --border:#0d1830;
+    --green:#00ff88; --red:#ff2244; --gold:#ffd700; --gold2:#ffaa00;
+    --cyan:#00ddff; --purple:#aa44ff; --orange:#ff6622;
+    --text:#a0c0e0; --muted:#2a4060;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; overflow-x:hidden; }
+  body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(0,255,136,0.03) 0%, transparent 60%); pointer-events:none; z-index:0; }
+
+  header { position:sticky; top:0; z-index:100; background:rgba(2,5,16,0.97); border-bottom:1px solid var(--border); padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .logo { font-family:'Orbitron',monospace; font-size:14px; font-weight:900; letter-spacing:2px; background:linear-gradient(90deg,var(--green),var(--cyan),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .logo-sub { font-size:9px; color:var(--muted); letter-spacing:2px; font-family:'Share Tech Mono',monospace; margin-top:2px; }
+  .conn-pill { display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--border); padding:5px 12px; border-radius:20px; font-family:'Share Tech Mono',monospace; font-size:10px; }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--muted); transition:all 0.3s; }
+  .dot.live { background:var(--green); box-shadow:0 0 10px var(--green); animation:pulse 1.5s infinite; }
+  .dot.loading { background:var(--gold); box-shadow:0 0 8px var(--gold); animation:pulse 0.4s infinite; }
+  #conn-txt { color:var(--muted); }
+  #conn-txt.live { color:var(--green); }
+  #conn-txt.loading { color:var(--gold); }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  #alert-banner {
+    display:none; padding:12px 16px;
+    background:linear-gradient(90deg,var(--green),var(--cyan),var(--green));
+    background-size:200%; animation:scrollbg 1.5s linear infinite;
+    font-family:'Orbitron',monospace; font-size:13px;
+    letter-spacing:2px; color:#000; text-align:center; font-weight:900;
+    border-bottom:2px solid var(--cyan); z-index:99;
+  }
+  @keyframes scrollbg { 0%{background-position:0%}100%{background-position:200%} }
+
+  .live-stats { background:var(--bg2); border-bottom:1px solid var(--border); padding:10px 16px; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; position:relative; z-index:10; }
+  .ls-box { background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:8px 10px; text-align:center; }
+  .ls-val { font-family:'Orbitron',monospace; font-size:18px; font-weight:700; }
+  .ls-lbl { font-size:9px; color:var(--muted); letter-spacing:1px; margin-top:2px; }
+
+  .ctrl-bar { background:var(--bg2); border-bottom:1px solid var(--border); padding:10px 16px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; position:relative; z-index:10; }
+  .ctrl-btn { padding:12px 6px; border-radius:6px; font-family:'Orbitron',monospace; font-size:11px; letter-spacing:1px; font-weight:700; cursor:pointer; text-align:center; transition:all 0.2s; border:2px solid; }
+  .ctrl-start { border-color:var(--green); color:var(--green); background:rgba(0,255,136,0.06); }
+  .ctrl-start.active { background:var(--green); color:#000; }
+  .ctrl-pause { border-color:var(--gold); color:var(--gold); background:rgba(255,215,0,0.06); }
+  .ctrl-pause.active { background:var(--gold); color:#000; }
+  .ctrl-stop { border-color:var(--red); color:var(--red); background:rgba(255,34,68,0.06); }
+
+  .tabs { background:var(--bg2); border-bottom:1px solid var(--border); display:flex; position:relative; z-index:10; }
+  .tab { flex:1; padding:8px 4px; text-align:center; font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; }
+  .tab.active { color:var(--green); border-bottom-color:var(--green); }
+
+  .filter-bar { background:var(--bg2); border-bottom:1px solid var(--border); padding:8px 12px; display:flex; gap:5px; flex-wrap:wrap; align-items:center; position:relative; z-index:10; }
+  .clr-btn { padding:4px 10px; border-radius:4px; cursor:pointer; font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; background:transparent; border:1px solid; transition:all 0.2s; }
+
+  .stats-row { display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid var(--border); background:var(--bg2); position:relative; z-index:10; }
+  .stat { padding:7px 8px; border-right:1px solid var(--border); }
+  .stat:last-child { border-right:none; }
+  .stat-v { font-family:'Orbitron',monospace; font-size:15px; color:var(--green); font-weight:700; }
+  .stat-l { font-size:8px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-top:1px; }
+
+  #feed { padding:10px; display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:calc(100vh - 360px); padding-bottom:90px; position:relative; z-index:10; }
+  #feed::-webkit-scrollbar { width:3px; }
+  #feed::-webkit-scrollbar-thumb { background:var(--border); }
+
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px 14px; animation:slideIn 0.4s cubic-bezier(0.34,1.56,0.64,1); position:relative; overflow:hidden; }
+
+  .card.graduated {
+    border-color:var(--green);
+    background:linear-gradient(135deg,var(--panel),rgba(0,255,136,0.07));
+    box-shadow:0 0 25px rgba(0,255,136,0.15);
+  }
+  .card.graduated::after {
+    content:'🎓 GRADUÉE !';
+    position:absolute; top:8px; right:10px;
+    font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px;
+    color:var(--green); font-weight:900; animation:blink 0.8s infinite;
+  }
+
+  .card.approaching {
+    border-color:var(--gold);
+    background:linear-gradient(135deg,var(--panel),rgba(255,215,0,0.05));
+    box-shadow:0 0 15px rgba(255,215,0,0.1);
+  }
+  .card.approaching::after {
+    content:'⚡ $34K ATTEINT';
+    position:absolute; top:8px; right:10px;
+    font-family:'Orbitron',monospace; font-size:10px; letter-spacing:1px;
+    color:var(--gold); font-weight:900;
+  }
+
+  .card.watching { border-color:rgba(0,221,255,0.2); }
+
+  @keyframes slideIn { from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)} }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.2} }
+
+  .card-close { position:absolute; top:8px; left:8px; width:26px; height:26px; border-radius:50%; background:rgba(255,34,68,0.15); border:1px solid rgba(255,34,68,0.35); color:var(--red); font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .card-close:hover { background:rgba(255,34,68,0.35); }
+
+  .card-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; padding-left:34px; padding-right:80px; }
+  .badge { padding:3px 7px; border-radius:4px; font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; font-weight:700; }
+  .badge-grad { background:rgba(0,255,136,0.15); color:var(--green); border:1px solid rgba(0,255,136,0.3); }
+  .badge-approach { background:rgba(255,215,0,0.12); color:var(--gold); border:1px solid rgba(255,215,0,0.25); }
+  .badge-watch { background:rgba(0,221,255,0.1); color:var(--cyan); border:1px solid rgba(0,221,255,0.2); }
+  .token-name { font-family:'Orbitron',monospace; font-size:17px; font-weight:900; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card-time { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--muted); }
+
+  .progress-section { margin-bottom:10px; }
+  .progress-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+  .progress-label { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--muted); }
+  .progress-pct { font-family:'Orbitron',monospace; font-size:14px; font-weight:700; }
+  .progress-bg { height:8px; background:rgba(255,255,255,0.04); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+  .progress-fill { height:100%; border-radius:4px; transition:width 0.8s ease; }
+
+  .detail-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-bottom:8px; }
+  .dbox { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:5px; padding:5px 7px; text-align:center; }
+  .dval { font-family:'Orbitron',monospace; font-size:11px; font-weight:700; }
+  .dlbl { font-size:8px; color:var(--muted); letter-spacing:1px; margin-top:1px; }
+
+  .verdict { padding:6px 10px; border-radius:6px; font-family:'Share Tech Mono',monospace; font-size:10px; margin-bottom:8px; }
+  .v-green { background:rgba(0,255,136,0.06); color:var(--green); border:1px solid rgba(0,255,136,0.15); }
+  .v-gold { background:rgba(255,215,0,0.06); color:var(--gold); border:1px solid rgba(255,215,0,0.15); }
+  .v-cyan { background:rgba(0,221,255,0.06); color:var(--cyan); border:1px solid rgba(0,221,255,0.15); }
+
+  .card-btns { display:flex; gap:5px; }
+  .act-btn { flex:1; padding:8px 4px; border-radius:5px; font-family:'Orbitron',monospace; font-size:9px; letter-spacing:1px; cursor:pointer; text-align:center; text-decoration:none; display:block; transition:all 0.2s; border:1px solid; }
+  .btn-pump { background:rgba(0,255,136,0.08); color:var(--green); border-color:rgba(0,255,136,0.2); }
+  .btn-ray { background:rgba(170,68,255,0.08); color:var(--purple); border-color:rgba(170,68,255,0.2); }
+  .btn-dex { background:rgba(0,221,255,0.08); color:var(--cyan); border-color:rgba(0,221,255,0.2); }
+
+  .empty { text-align:center; padding:40px 20px; color:var(--muted); font-family:'Share Tech Mono',monospace; font-size:11px; line-height:2.5; }
+
+  .bottom-bar { position:fixed; bottom:0; left:0; right:0; background:rgba(2,5,16,0.97); border-top:1px solid var(--border); z-index:50; max-height:75px; overflow:hidden; }
+  #log { padding:5px 12px; display:flex; flex-direction:column; gap:3px; }
+  .log-item { font-family:'Share Tech Mono',monospace; font-size:10px; display:flex; gap:8px; align-items:center; }
+</style>
+</head>
+<body>
+
+<div id="alert-banner"></div>
+
+<div id="modal">
+  <div class="modal-box">
+    <div class="modal-title">🎓 GRADUATION !</div>
+    <div class="modal-name" id="m-name"></div>
+    <div class="modal-mc" id="m-mc"></div>
+    <div class="modal-detail" id="m-detail"></div>
+    <div class="modal-btns">
+      <a class="modal-btn mbtn-pump" id="m-pump" target="_blank">→ PUMP.FUN</a>
+      <a class="modal-btn mbtn-ray" id="m-ray" target="_blank">→ RAYDIUM</a>
+      <a class="modal-btn mbtn-dex" id="m-dex" target="_blank">→ DEXSCREENER</a>
+      <button class="modal-btn mbtn-close" onclick="closeModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div>
+    <div class="logo">🎓 GRAD DETECTOR</div>
+    <div class="logo-sub">PUMP.FUN → RAYDIUM · TEMPS RÉEL</div>
+  </div>
+  <div class="conn-pill">
+    <div class="dot" id="dot"></div>
+    <span id="conn-txt">OFF</span>
+  </div>
+</header>
+
+<div class="live-stats">
+  <div class="ls-box">
+    <div class="ls-val" id="ls-grad" style="color:var(--green)">0</div>
+    <div class="ls-lbl">🎓 GRADUÉES</div>
+  </div>
+  <div class="ls-box">
+    <div class="ls-val" id="ls-app" style="color:var(--gold)">0</div>
+    <div class="ls-lbl">⚡ $34K+</div>
+  </div>
+  <div class="ls-box">
+    <div class="ls-val" id="ls-watch" style="color:var(--cyan)">0</div>
+    <div class="ls-lbl">👁 EN COURS</div>
+  </div>
+</div>
+
+<div class="ctrl-bar">
+  <button class="ctrl-btn ctrl-start" id="btn-start" onclick="startMonitor()">▶ START</button>
+  <button class="ctrl-btn ctrl-pause" id="btn-pause" onclick="togglePause()">⏸ PAUSE</button>
+  <button class="ctrl-btn ctrl-stop" onclick="stopMonitor()">■ STOP</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="all" onclick="setTab('all',this)">TOUT</div>
+  <div class="tab" data-tab="graduated" onclick="setTab('graduated',this)">🎓 GRAD</div>
+  <div class="tab" data-tab="approaching" onclick="setTab('approaching',this)">⚡ $34K</div>
+  <div class="tab" data-tab="watching" onclick="setTab('watching',this)">👁 SURVEILLE</div>
+</div>
+
+<div class="filter-bar">
+  <span style="font-size:9px;color:var(--muted)">EFFACER :</span>
+  <button class="clr-btn" onclick="clearAll()" style="border-color:var(--red);color:var(--red)">🗑 TOUT</button>
+  <button class="clr-btn" onclick="clearType('graduated')" style="border-color:var(--green);color:var(--green)">✕ GRAD</button>
+  <button class="clr-btn" onclick="clearType('approaching')" style="border-color:var(--gold);color:var(--gold)">✕ $34K</button>
+  <button class="clr-btn" onclick="clearType('watching')" style="border-color:var(--cyan);color:var(--cyan)">✕ SURVEILLE</button>
+</div>
+
+<div class="stats-row">
+  <div class="stat"><div class="stat-v" id="s-grad" style="color:var(--green)">0</div><div class="stat-l">Graduées</div></div>
+  <div class="stat"><div class="stat-v" id="s-app" style="color:var(--gold)">0</div><div class="stat-l">$34K+</div></div>
+  <div class="stat"><div class="stat-v" id="s-watch" style="color:var(--cyan)">0</div><div class="stat-l">En cours</div></div>
+</div>
+
+<div id="feed">
+  <div class="empty" id="empty">
+    🎓 GRADUATION DETECTOR<br>
+    ━━━━━━━━━━━━━━━━━━━━<br>
+    DÉTECTE TOUTES LES GRADUATIONS<br>
+    PUMP.FUN → RAYDIUM EN TEMPS RÉEL<br>
+    ALERTE DÈS $34K MC<br>
+    <span style="font-size:9px;color:rgba(0,255,136,0.2)">▶ START pour commencer</span>
+  </div>
+</div>
+
+<div class="bottom-bar"><div id="log"></div></div>
+
+<script>
+const GRAD_MC = 69000;
+const APPROACH_MC = 34000;
+const WATCH_MC = 10000;
+
+let SOL_PRICE = 165;
+let ws = null;
+let running = false, paused = false;
+let gradCount = 0, appCount = 0, watchCount = 0;
+let tokens = {};
+let currentTab = 'all';
+
+function now() { return new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+function fmtMC(n) {
+  if (!n) return '$0';
+  if (n >= 1000000) return '$'+(n/1000000).toFixed(2)+'M';
+  if (n >= 1000) return '$'+(n/1000).toFixed(1)+'K';
+  return '$'+Math.round(n);
+}
+function short(a) { return a ? a.slice(0,6)+'…'+a.slice(-4) : '—'; }
+
+function getStatus(mc) {
+  if (mc >= GRAD_MC) return 'graduated';
+  if (mc >= APPROACH_MC) return 'approaching';
+  if (mc >= WATCH_MC) return 'watching';
+  return null;
+}
+
+function getColor(status) {
+  if (status === 'graduated') return 'var(--green)';
+  if (status === 'approaching') return 'var(--gold)';
+  return 'var(--cyan)';
+}
+
+// Mise à jour automatique du prix du SOL
+async function updateSolPrice() {
+  try {
+    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+    const data = await res.json();
+    SOL_PRICE = data.solana?.usd || SOL_PRICE;
+    console.log(`💰 SOL PRICE updated → $${SOL_PRICE}`);
+  } catch(e) {
+    console.log("Impossible de récupérer le prix SOL");
+  }
+}
+setInterval(updateSolPrice, 30000);
+updateSolPrice();
+
+// ============================================================
+// WEBSOCKET
+// ============================================================
+function startMonitor() {
+  if (running) return;
+  running = true; paused = false;
+  document.getElementById('btn-start').classList.add('active');
+  document.getElementById('btn-pause').textContent = '⏸ PAUSE';
+  connectWS();
+}
+
+function connectWS() {
+  if (ws) { try { ws.close(); } catch(e) {} }
+  setStatus('loading', 'CONNEXION...');
+
+  ws = new WebSocket('wss://pumpportal.fun/api/data');
+
+  ws.onopen = () => {
+    setStatus('live', 'LIVE');
+    ws.send(JSON.stringify({ method: 'subscribeNewToken' }));
+    ws.send(JSON.stringify({ method: 'subscribeTokenTrade' }));
+  };
+
+  ws.onmessage = (e) => {
+    try {
+      const d = JSON.parse(e.data);
+      if (!paused) handleEvent(d);
+    } catch(err) {}
+  };
+
+  ws.onerror = () => setStatus('loading', 'ERREUR WS');
+  ws.onclose = () => {
+    if (running) {
+      setStatus('loading', 'RECONNEXION...');
+      setTimeout(connectWS, 3000);
+    }
+  };
+}
+
+// ============================================================
+// EVENT HANDLER
+// ============================================================
+function handleEvent(d) {
+  const mint = d.mint;
+  if (!mint) return;
+
+  let mcSOL = d.marketCapSol || d.vSolInBondingCurve || d.virtualSolReserves || 0;
+  const mcUSD = mcSOL * SOL_PRICE;
+  const name = d.name || d.symbol || short(mint);
+  const symbol = d.symbol || '—';
+  const solVol = d.solAmount || d.initialBuy || 0;
+
+  if (d.txType === 'migrate' || d.bonded === true || d.complete === true) {
+    const token = tokens[mint] || { mint, name, symbol, mc: GRAD_MC, solVol: 0 };
+    token.status = 'graduated';
+    token.mc = GRAD_MC;
+    tokens[mint] = token;
+    addOrUpdateCard(token, true);
+    triggerGradAlert(token);
+    return;
+  }
+
+  if (d.txType === 'create' || d.newTokenCreated) {
+    if (!tokens[mint]) {
+      tokens[mint] = { mint, name, symbol, mc: mcUSD, solVol, status: getStatus(mcUSD) };
+    }
+    const status = getStatus(mcUSD);
+    if (status) addOrUpdateCard(tokens[mint]);
+    return;
+  }
+
+  if (d.txType === 'buy' || d.txType === 'sell') {
+    if (!tokens[mint]) {
+      tokens[mint] = { mint, name, symbol, mc: mcUSD, solVol, status: null };
+    }
+
+    const prev = tokens[mint];
+    const prevStatus = prev.status || null;
+
+    prev.mc = mcUSD;
+    prev.solVol = (prev.solVol || 0) + solVol;
+    if (d.name) prev.name = d.name;
+    if (d.symbol) prev.symbol = d.symbol;
+
+    const newStatus = getStatus(mcUSD);
+    prev.status = newStatus;
+
+    if (newStatus) {
+      addOrUpdateCard(prev);
+
+      if (newStatus === 'approaching' && 
+          (prevStatus === 'watching' || prevStatus === null || prevStatus === undefined)) {
+        triggerApproachAlert(prev);
+      }
+
+      if (newStatus === 'graduated' && prevStatus !== 'graduated') {
+        triggerGradAlert(prev);
+      }
+    }
+  }
+}
+
+function addOrUpdateCard(token, forceTop = false) {
+  const existing = document.getElementById('card-'+token.mint);
+
+  if (existing) {
+    const wasStatus = existing.dataset.type;
+    if (wasStatus !== token.status) {
+      existing.className = `card ${token.status}`;
+      existing.dataset.type = token.status;
+    }
+    existing.innerHTML = buildCard(token);
+    if (forceTop || token.status === 'graduated') {
+      existing.parentNode.insertBefore(existing, existing.parentNode.firstChild);
+    }
+    return;
+  }
+
+  document.getElementById('empty')?.remove();
+  if (token.status === 'graduated') gradCount++;
+  else if (token.status === 'approaching') appCount++;
+  else if (token.status === 'watching') watchCount++;
+  updateStats();
+
+  const feed = document.getElementById('feed');
+  const card = document.createElement('div');
+  card.className = `card ${token.status}`;
+  card.id = `card-${token.mint}`;
+  card.dataset.type = token.status;
+  card.innerHTML = buildCard(token);
+
+  if (currentTab !== 'all' && token.status !== currentTab) card.style.display = 'none';
+
+  feed.insertBefore(card, feed.firstChild);
+  if (feed.querySelectorAll('.card').length > 100) feed.lastElementChild.remove();
+}
+
+function buildCard(token) {
+  const pct = Math.min((token.mc / GRAD_MC) * 100, 100);
+  const color = getColor(token.status);
+  const remaining = Math.max(0, GRAD_MC - token.mc);
+  const badgeClass = token.status === 'graduated' ? 'badge-grad' : token.status === 'approaching' ? 'badge-approach' : 'badge-watch';
+  const badgeLabel = token.status === 'graduated' ? '🎓 GRADUÉE' : token.status === 'approaching' ? '⚡ $34K ATTEINT' : '👁 SURVEILLE';
+  const verdictText = token.status === 'graduated'
+    ? '🎓 GRADUÉE → Disponible sur Raydium maintenant !'
+    : token.status === 'approaching'
+    ? `⚡ APPROCHE — Il manque ${fmtMC(remaining)} pour graduer`
+    : `👁 En surveillance — ${fmtMC(token.mc)} / ${fmtMC(GRAD_MC)}`;
+  const verdictClass = token.status === 'graduated' ? 'v-green' : token.status === 'approaching' ? 'v-gold' : 'v-cyan';
+
+  const pumpUrl = `https://pump.fun/${token.mint}`;
+  const rayUrl = `https://raydium.io/swap/?inputCurrency=sol&outputCurrency=${token.mint}`;
+  const dexUrl = `https://dexscreener.com/solana/${token.mint}`;
+
+  return `
+    <button class="card-close" onclick="this.closest('.card').remove()">✕</button>
+    <div class="card-header">
+      <span class="badge ${badgeClass}">${badgeLabel}</span>
+      <span class="token-name">${token.name || 'TOKEN'}</span>
+    </div>
+    <div class="progress-section">
+      <div class="progress-header">
+        <span class="progress-label">VERS GRADUATION ($69K)</span>
+        <span class="progress-pct" style="color:${color}">${pct.toFixed(1)}%</span>
+      </div>
+      <div class="progress-bg">
+        <div class="progress-fill" style="width:${pct}%;background:linear-gradient(90deg,var(--cyan),${color})"></div>
+      </div>
+    </div>
+    <div class="detail-row">
+      <div class="dbox"><div class="dval" style="color:${color}">${fmtMC(token.mc)}</div><div class="dlbl">MKT CAP</div></div>
+      <div class="dbox"><div class="dval" style="color:var(--orange)">${fmtMC(remaining)}</div><div class="dlbl">RESTANT</div></div>
+      <div class="dbox"><div class="dval" style="color:var(--purple)">${token.symbol||'—'}</div><div class="dlbl">SYMBOLE</div></div>
+    </div>
+    <div class="verdict ${verdictClass}">${verdictText}</div>
+    <div class="card-btns">
+      <a class="act-btn btn-pump" href="${pumpUrl}" target="_blank">PUMP.FUN</a>
+      <a class="act-btn btn-ray" href="${rayUrl}" target="_blank">RAYDIUM</a>
+      <a class="act-btn btn-dex" href="${dexUrl}" target="_blank">DEXSCREENER</a>
+    </div>
+  `;
+}
+
+function triggerGradAlert(token) {
+  playSound('grad');
+  showBanner(`🎓 GRADUATION ! ${token.name} → RAYDIUM — ${fmtMC(token.mc)}`);
+  showModal(token);
+  addLog(`🎓 ${token.name} GRADUÉE — ${fmtMC(token.mc)}`);
+}
+
+function triggerApproachAlert(token) {
+  playSound('approach');
+  showBanner(`⚡ ${token.name} DÉPASSE $34K — ${fmtMC(token.mc)} — SURVEILLE !`);
+  addLog(`⚡ ${token.name} — ${fmtMC(token.mc)}`);
+}
+
+function showBanner(msg) {
+  const b = document.getElementById('alert-banner');
+  b.textContent = msg; b.style.display = 'block';
+  setTimeout(() => b.style.display = 'none', 8000);
+}
+
+function showModal(token) {
+  document.getElementById('m-name').textContent = token.name || 'TOKEN';
+  document.getElementById('m-mc').textContent = fmtMC(token.mc);
+  document.getElementById('m-detail').textContent = `Mint: ${short(token.mint)}\nSymbole: ${token.symbol||'—'}\nGraduée vers Raydium ✓`;
+  document.getElementById('m-pump').href = `https://pump.fun/${token.mint}`;
+  document.getElementById('m-ray').href = `https://raydium.io/swap/?inputCurrency=sol&outputCurrency=${token.mint}`;
+  document.getElementById('m-dex').href = `https://dexscreener.com/solana/${token.mint}`;
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
+
+function addLog(msg) {
+  const log = document.getElementById('log');
+  const item = document.createElement('div');
+  item.className = 'log-item';
+  item.innerHTML = `<span style="color:var(--green)">🎓</span><span style="color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${msg}</span><span style="color:var(--muted);flex-shrink:0">${now()}</span>`;
+  log.insertBefore(item, log.firstChild);
+  if (log.querySelectorAll('.log-item').length > 3) log.lastElementChild.remove();
+}
+
+function updateStats() {
+  document.getElementById('s-grad').textContent = gradCount;
+  document.getElementById('s-app').textContent = appCount;
+  document.getElementById('s-watch').textContent = watchCount;
+  document.getElementById('ls-grad').textContent = gradCount;
+  document.getElementById('ls-app').textContent = appCount;
+  document.getElementById('ls-watch').textContent = watchCount;
+}
+
+function playSound(type) {
+  try {
+    const ctx = new(window.AudioContext||window.webkitAudioContext)();
+    const notes = type==='grad'
+      ? [[523,0],[659,0.1],[784,0.2],[1047,0.3],[1319,0.4]]
+      : [[440,0],[554,0.12],[659,0.24]];
+    notes.forEach(([f,t]) => {
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=f;o.type='sine';
+      g.gain.setValueAtTime(0.12,ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.15);
+      o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+0.15);
+    });
+  }catch(e){}
+}
+
+function setTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.card').forEach(c => {
+    c.style.display = (tab==='all'||c.dataset.type===tab) ? '' : 'none';
+  });
+}
+
+function clearAll() {
+  document.getElementById('feed').querySelectorAll('.card').forEach(c=>c.remove());
+  gradCount=0; appCount=0; watchCount=0; updateStats();
+  document.getElementById('feed').innerHTML='<div class="empty">🗑 EFFACÉ</div>';
+}
+function clearType(t) { document.querySelectorAll(`.card.${t}`).forEach(c=>c.remove()); }
+
+function togglePause() {
+  if (!running) return;
+  paused = !paused;
+  if (paused) {
+    setStatus('pause','⏸ PAUSE');
+    document.getElementById('btn-pause').classList.add('active');
+    document.getElementById('btn-pause').textContent='▶ REPRENDRE';
+  } else {
+    setStatus('live','LIVE');
+    document.getElementById('btn-pause').classList.remove('active');
+    document.getElementById('btn-pause').textContent='⏸ PAUSE';
+  }
+}
+
+function stopMonitor() {
+  running=false; paused=false;
+  if (ws) { try{ws.close();}catch(e){} ws=null; }
+  setStatus('off','OFF');
+  document.getElementById('btn-start').classList.remove('active');
+  document.getElementById('btn-pause').classList.remove('active');
+  document.getElementById('btn-pause').textContent='⏸ PAUSE';
+}
+
+function setStatus(state, label) {
+  document.getElementById('dot').className='dot'+(state==='live'?' live':state==='loading'?' loading':'');
+  const txt=document.getElementById('conn-txt');
+  txt.className=state==='live'?'live':state==='loading'?'loading':'';
+  txt.textContent=label;
+}
+</script>
+</body>
+</html>
