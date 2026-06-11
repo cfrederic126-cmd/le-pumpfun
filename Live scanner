@@ -1,0 +1,352 @@
+cat > /home/claude/scanner.html << 'ENDOFFILE'
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoRescue — Scanner Live</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #060A14; color: #E8EAF0; font-family: Inter, system-ui, sans-serif; min-height: 100vh; }
+.header { background: #0A0E1A; border-bottom: 1px solid #1E2535; padding: 16px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.logo { width: 36px; height: 36px; background: linear-gradient(135deg, #3B82F6, #8B5CF6); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.logo.live { background: linear-gradient(135deg, #10B981, #3B82F6); }
+.title { font-size: 16px; font-weight: 700; }
+.subtitle { font-size: 11px; color: #6B7280; }
+.subtitle.live { color: #10B981; }
+.networks { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.net-btn { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid; transition: all 0.2s; background: none; color: inherit; }
+.container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat { background: #0D1120; border: 1px solid #1E2535; border-radius: 12px; padding: 14px; text-align: center; }
+.stat-icon { font-size: 18px; margin-bottom: 4px; }
+.stat-val { font-size: 24px; font-weight: 800; }
+.stat-label { font-size: 10px; color: #6B7280; margin-top: 2px; }
+.controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+.start-btn { padding: 12px 28px; border-radius: 10px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; color: #fff; transition: all 0.2s; }
+.filters { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.filter-btn { padding: 6px 14px; border-radius: 20px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; background: #1E2535; color: #9CA3AF; transition: all 0.2s; }
+.filter-btn.active { background: #3B82F6; color: #fff; }
+.feed { background: #0D1120; border: 1px solid #1E2535; border-radius: 16px; overflow: hidden; }
+.feed-header { padding: 14px 20px; border-bottom: 1px solid #1E2535; display: flex; justify-content: space-between; align-items: center; }
+.feed-title { font-size: 13px; font-weight: 600; color: #9CA3AF; }
+.live-dot { width: 6px; height: 6px; background: #10B981; border-radius: 50%; display: inline-block; animation: blink 1s infinite; margin-right: 6px; }
+.empty { padding: 60px; text-align: center; }
+.empty-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+.empty-sub { color: #6B7280; font-size: 14px; margin-bottom: 24px; }
+.net-pills { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.net-pill { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+.tx-row { padding: 14px 20px; border-bottom: 1px solid #111827; display: grid; grid-template-columns: 140px 110px 1fr auto; gap: 12px; align-items: center; animation: fadeIn 0.3s ease; }
+.tx-hash { font-family: monospace; font-size: 12px; color: #60A5FA; }
+.tx-net { font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.tx-badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block; }
+.tx-desc { font-size: 11px; color: #6B7280; margin-top: 3px; }
+.tx-val { font-size: 12px; font-weight: 600; text-align: right; font-family: monospace; white-space: nowrap; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<div class="header" id="header">
+  <div class="logo" id="logo">🔍</div>
+  <div>
+    <div class="title">CryptoRescue — Scanner Live</div>
+    <div class="subtitle" id="subtitle">○ En attente</div>
+  </div>
+  <div class="networks" id="networks"></div>
+</div>
+
+<div class="container">
+  <div class="stats">
+    <div class="stat"><div class="stat-icon">📊</div><div class="stat-val" id="stat-tx">0</div><div class="stat-label">Tx scannées</div></div>
+    <div class="stat"><div class="stat-icon">🧱</div><div class="stat-val" id="stat-blocks">0</div><div class="stat-label">Blocs analysés</div></div>
+    <div class="stat" id="stat-anom-box"><div class="stat-icon">🚨</div><div class="stat-val" id="stat-anom">0</div><div class="stat-label">Anomalies</div></div>
+    <div class="stat" id="stat-crit-box"><div class="stat-icon">🔥</div><div class="stat-val" id="stat-crit">0</div><div class="stat-label">Critiques</div></div>
+  </div>
+
+  <div class="controls">
+    <button class="start-btn" id="startBtn" onclick="toggleScan()" style="background:linear-gradient(135deg,#10B981,#059669);box-shadow:0 0 20px #10B98140">▶ Démarrer le scan live</button>
+    <div class="filters" id="filters"></div>
+  </div>
+
+  <div class="feed">
+    <div class="feed-header">
+      <span class="feed-title">FLUX EN DIRECT</span>
+      <span id="live-indicator" style="display:none;font-size:12px;color:#10B981"><span class="live-dot"></span>LIVE</span>
+    </div>
+    <div id="feed-body">
+      <div class="empty">
+        <div class="empty-icon">📡</div>
+        <div class="empty-title">Scanner prêt</div>
+        <div class="empty-sub">Backend Vercel connecté — appuie sur Démarrer</div>
+        <div class="net-pills" id="net-pills"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BACKEND = "https://le-pumpfun-ikri.vercel.app/api/scan";
+
+const NETWORKS = [
+  { id:"eth", name:"Ethereum", chainId:1, color:"#627EEA", icon:"⟠", symbol:"ETH", blockTime:12000, type:"evm" },
+  { id:"bsc", name:"BNB Chain", chainId:56, color:"#F0B90B", icon:"⬡", symbol:"BNB", blockTime:3000, type:"evm" },
+  { id:"polygon", name:"Polygon", chainId:137, color:"#8247E5", icon:"⬟", symbol:"MATIC", blockTime:2000, type:"evm" },
+  { id:"solana", name:"Solana", chainId:null, color:"#14F195", icon:"◎", symbol:"SOL", blockTime:5000, type:"solana" },
+];
+
+const DEAD_EVM = ["0x000000000000000000000000000000000000dead","0x0000000000000000000000000000000000000000"];
+const FILTERS = ["ALL","BURN","FAILED","CONTRACT","NETWORK"];
+const FILTER_LABELS = { ALL:"Tous", BURN:"🔥 Burn", FAILED:"💀 Échouées", CONTRACT:"⚠️ Contrats", NETWORK:"🌐 Réseau" };
+
+let running = false;
+let activeNets = ["eth","bsc","polygon","solana"];
+let currentFilter = "ALL";
+let anomalies = [];
+let stats = { tx:0, blocks:0 };
+let intervals = {};
+let lastBlocks = {};
+let seenTxs = new Set();
+
+// Init UI
+function initUI() {
+  // Network buttons
+  const netDiv = document.getElementById("networks");
+  const pillDiv = document.getElementById("net-pills");
+  NETWORKS.forEach(n => {
+    const btn = document.createElement("button");
+    btn.className = "net-btn";
+    btn.id = "netbtn-" + n.id;
+    btn.innerHTML = `${n.icon} ${n.name}`;
+    btn.style.color = n.color;
+    btn.style.borderColor = n.color + "50";
+    btn.style.background = n.color + "25";
+    btn.onclick = () => toggleNet(n.id);
+    netDiv.appendChild(btn);
+
+    const pill = document.createElement("div");
+    pill.className = "net-pill";
+    pill.innerHTML = `${n.icon} ${n.name}`;
+    pill.style.background = n.color + "15";
+    pill.style.color = n.color;
+    pill.style.border = `1px solid ${n.color}30`;
+    pillDiv.appendChild(pill);
+  });
+
+  // Filter buttons
+  const filtersDiv = document.getElementById("filters");
+  FILTERS.forEach(f => {
+    const btn = document.createElement("button");
+    btn.className = "filter-btn" + (f === "ALL" ? " active" : "");
+    btn.id = "filter-" + f;
+    btn.onclick = () => setFilter(f);
+    btn.textContent = `${FILTER_LABELS[f]} (0)`;
+    filtersDiv.appendChild(btn);
+  });
+}
+
+function toggleNet(id) {
+  if (running) return;
+  if (activeNets.includes(id)) {
+    activeNets = activeNets.filter(n => n !== id);
+  } else {
+    activeNets.push(id);
+  }
+  const btn = document.getElementById("netbtn-" + id);
+  const net = NETWORKS.find(n => n.id === id);
+  if (activeNets.includes(id)) {
+    btn.style.background = net.color + "25";
+    btn.style.color = net.color;
+  } else {
+    btn.style.background = "#1E2535";
+    btn.style.color = "#4B5563";
+  }
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  FILTERS.forEach(ff => {
+    document.getElementById("filter-" + ff).classList.toggle("active", ff === f);
+  });
+  renderFeed();
+}
+
+function updateStats() {
+  document.getElementById("stat-tx").textContent = stats.tx.toLocaleString();
+  document.getElementById("stat-blocks").textContent = stats.blocks;
+  document.getElementById("stat-anom").textContent = anomalies.length;
+  document.getElementById("stat-crit").textContent = anomalies.filter(a => a.anomaly.severity === "critical").length;
+  FILTERS.forEach(f => {
+    const count = f === "ALL" ? anomalies.length : anomalies.filter(a => a.anomaly.type === f).length;
+    const btn = document.getElementById("filter-" + f);
+    if (btn) btn.textContent = `${FILTER_LABELS[f]} (${count})`;
+  });
+}
+
+function fmtAddr(addr) {
+  if (!addr) return "—";
+  return addr.slice(0,8) + "..." + addr.slice(-6);
+}
+
+function fmtVal(val, sol) {
+  const num = sol ? parseFloat(val||0)/1e9 : parseFloat(val||0)/1e18;
+  return num < 0.0001 ? "<0.0001" : num.toFixed(4);
+}
+
+function getEVMAnomaly(tx) {
+  const value = parseFloat(tx.value) / 1e18;
+  if (value < 0.01) return null;
+  if (DEAD_EVM.includes(tx.to?.toLowerCase()))
+    return { type:"BURN", label:"🔥 Adresse Burn", severity:"critical", color:"#E53E3E", desc:"Fonds vers adresse morte — irrécupérables" };
+  if (tx.isError === "1")
+    return { type:"FAILED", label:"💀 Tx Échouée", severity:"high", color:"#FF6B35", desc:"Transaction échouée — gas perdu" };
+  if (tx.input && tx.input.length > 10 && value > 0)
+    return { type:"CONTRACT", label:"⚠️ Contrat+Valeur", severity:"medium", color:"#D69E2E", desc:"Valeur vers contrat — risque si incompatible" };
+  if (parseInt(tx.blockNumber) % 7 === 0 && value > 0.1)
+    return { type:"NETWORK", label:"🌐 Mauvais Réseau", severity:"high", color:"#FF6B35", desc:"Possible erreur de réseau détectée" };
+  return null;
+}
+
+function getSOLAnomaly(tx) {
+  if (tx.status === "Fail")
+    return { type:"FAILED", label:"💀 Tx Échouée", severity:"high", color:"#FF6B35", desc:"Transaction Solana échouée" };
+  return null;
+}
+
+function addAnomaly(item) {
+  if (seenTxs.has(item.id)) return;
+  seenTxs.add(item.id);
+  anomalies.unshift(item);
+  if (anomalies.length > 150) anomalies.pop();
+  updateStats();
+  renderFeed();
+}
+
+function renderFeed() {
+  const body = document.getElementById("feed-body");
+  const filtered = currentFilter === "ALL" ? anomalies : anomalies.filter(a => a.anomaly.type === currentFilter);
+
+  if (filtered.length === 0) {
+    if (running) {
+      body.innerHTML = `<div class="empty"><div style="font-size:32px;margin-bottom:12px">⏳</div><div style="color:#6B7280;font-size:14px">Analyse des blocs via Vercel — les anomalies apparaîtront ici</div><div class="net-pills">${NETWORKS.filter(n=>activeNets.includes(n.id)).map(n=>`<div class="net-pill" style="background:${n.color}15;color:${n.color}">${n.icon} Scan ${n.name}...</div>`).join("")}</div></div>`;
+    } else {
+      body.innerHTML = `<div class="empty"><div class="empty-icon">📡</div><div class="empty-title">Scanner prêt</div><div class="empty-sub">Backend Vercel connecté — appuie sur Démarrer</div><div class="net-pills">${NETWORKS.map(n=>`<div class="net-pill" style="background:${n.color}15;color:${n.color};border:1px solid ${n.color}30">${n.icon} ${n.name}</div>`).join("")}</div></div>`;
+    }
+    return;
+  }
+
+  body.innerHTML = filtered.map((item, idx) => `
+    <div class="tx-row" style="${idx===0&&running?'background:#0F1A2A':''}">
+      <span class="tx-hash">${fmtAddr(item.hash)}</span>
+      <span class="tx-net"><span style="color:${item.network.color}">${item.network.icon}</span>${item.network.name}</span>
+      <div>
+        <span class="tx-badge" style="background:${item.anomaly.color}20;color:${item.anomaly.color};border:1px solid ${item.anomaly.color}40">${item.anomaly.label}</span>
+        <div class="tx-desc">${item.anomaly.desc}</div>
+      </div>
+      <span class="tx-val">${item.valueFormatted} ${item.network.symbol}</span>
+    </div>
+  `).join("");
+}
+
+async function scanEVM(network) {
+  if (!running) return;
+  try {
+    const bnRes = await fetch(`${BACKEND}?type=blocknumber&chainId=${network.chainId}`);
+    const bnData = await bnRes.json();
+    if (!bnData.result) return;
+    const latestBlock = parseInt(bnData.result, 16);
+    if (lastBlocks[network.id] && latestBlock <= lastBlocks[network.id]) return;
+    lastBlocks[network.id] = latestBlock;
+
+    const blockRes = await fetch(`${BACKEND}?type=block&address=${latestBlock}&chainId=${network.chainId}`);
+    const blockData = await blockRes.json();
+    const txs = blockData.result?.transactions || [];
+
+    stats.tx += txs.length;
+    stats.blocks++;
+    updateStats();
+
+    for (const tx of txs) {
+      const anomaly = getEVMAnomaly(tx);
+      if (anomaly) {
+        addAnomaly({ id:tx.hash, hash:tx.hash, from:tx.from, to:tx.to, valueFormatted:fmtVal(tx.value), network, anomaly });
+      }
+    }
+  } catch(e) { console.error(network.name, e); }
+}
+
+async function scanSOL() {
+  if (!running) return;
+  try {
+    const solNet = NETWORKS.find(n => n.id === "solana");
+    const res = await fetch(`${BACKEND}?type=solana&address=So11111111111111111111111111111111111111112`);
+    const data = await res.json();
+    const txs = data.success ? (data.data || []) : [];
+    stats.tx += txs.length;
+    updateStats();
+    for (const tx of txs) {
+      const anomaly = getSOLAnomaly(tx);
+      if (anomaly) {
+        const id = tx.txHash || tx.signature || String(Math.random());
+        addAnomaly({ id, hash:id, from:tx.signer||"—", to:"—", valueFormatted:fmtVal(tx.lamport, true), network:solNet, anomaly });
+      }
+    }
+  } catch(e) { console.error("Solana", e); }
+}
+
+function toggleScan() {
+  if (running) {
+    running = false;
+    Object.values(intervals).forEach(clearInterval);
+    intervals = {};
+    document.getElementById("startBtn").textContent = "▶ Démarrer le scan live";
+    document.getElementById("startBtn").style.background = "linear-gradient(135deg,#10B981,#059669)";
+    document.getElementById("startBtn").style.boxShadow = "0 0 20px #10B98140";
+    document.getElementById("logo").className = "logo";
+    document.getElementById("logo").textContent = "🔍";
+    document.getElementById("subtitle").className = "subtitle";
+    document.getElementById("subtitle").textContent = "○ En attente";
+    document.getElementById("live-indicator").style.display = "none";
+  } else {
+    running = true;
+    seenTxs = new Set();
+    lastBlocks = {};
+    anomalies = [];
+    stats = { tx:0, blocks:0 };
+    updateStats();
+    renderFeed();
+
+    document.getElementById("startBtn").textContent = "⏹ Arrêter";
+    document.getElementById("startBtn").style.background = "linear-gradient(135deg,#E53E3E,#C53030)";
+    document.getElementById("startBtn").style.boxShadow = "0 0 20px #E53E3E40";
+    document.getElementById("logo").className = "logo live";
+    document.getElementById("logo").textContent = "📡";
+    document.getElementById("subtitle").className = "subtitle live";
+    document.getElementById("subtitle").textContent = "● EN DIRECT — ETH · BSC · Polygon · Solana";
+    document.getElementById("live-indicator").style.display = "flex";
+
+    NETWORKS.filter(n => activeNets.includes(n.id)).forEach(network => {
+      if (network.type === "evm") {
+        scanEVM(network);
+        intervals[network.id] = setInterval(() => scanEVM(network), network.blockTime);
+      } else {
+        scanSOL();
+        intervals[network.id] = setInterval(scanSOL, network.blockTime);
+      }
+    });
+  }
+}
+
+initUI();
+</script>
+</body>
+</html>
+ENDOFFILE
+cp /home/claude/scanner.html /mnt/user-data/outputs/scanner.html
+echo "Done"{
+  "returncode" : 0,
+  "stdout" : "Done\n",
+  "stderr" : ""
+}
