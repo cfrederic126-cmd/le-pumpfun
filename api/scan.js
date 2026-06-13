@@ -23,6 +23,11 @@ export default async function handler(req, res) {
       const response = await fetch(url);
       const data = await response.json();
       res.status(200).json(data);
+    } else if (type === "code") {
+      const url = `https://api.etherscan.io/v2/api?chainid=${chainId}&module=proxy&action=eth_getCode&address=${address}&tag=latest&apikey=${ETH_KEY}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      res.status(200).json(data);
     } else {
       const url = `https://api.etherscan.io/v2/api?chainid=${chainId}&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&offset=50&page=1&apikey=${ETH_KEY}`;
       const response = await fetch(url);
