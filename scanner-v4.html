@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoRescue — Scanner Wallet</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0A0E1A; color: #E8EAF0; font-family: Inter, system-ui, sans-serif; min-height: 100vh; }
+.header { background: #0D1120; border-bottom: 1px solid #1E2535; padding: 20px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.logo { width: 36px; height: 36px; background: linear-gradient(135deg, #3B82F6, #8B5CF6); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.title { font-size: 16px; font-weight: 700; }
+.subtitle { font-size: 11px; color: #6B7280; }
+.networks { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.net-tag { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.container { max-width: 900px; margin: 0 auto; padding: 24px; }
+.search-card { background: #0D1120; border: 1px solid #1E2535; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+.search-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.search-sub { color: #6B7280; font-size: 14px; margin-bottom: 20px; }
+.search-row { display: flex; gap: 12px; }
+.search-input { flex: 1; background: #141824; border: 1px solid #2D3748; border-radius: 10px; padding: 12px 16px; color: #E8EAF0; font-size: 14px; font-family: monospace; outline: none; }
+.search-input.error { border-color: #E53E3E; }
+.scan-btn { padding: 12px 24px; background: linear-gradient(135deg,#3B82F6,#8B5CF6); border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.scan-btn:disabled { background: #2D3748; cursor: not-allowed; }
+.error-msg { color: #E53E3E; font-size: 12px; margin-top: 8px; }
+.progress-wrap { margin-top: 16px; }
+.progress-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; }
+.progress-bar { height: 4px; background: #1E2535; border-radius: 2px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg,#3B82F6,#8B5CF6); border-radius: 2px; transition: width 0.3s; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat { background: #0D1120; border: 1px solid #1E2535; border-radius: 12px; padding: 16px; text-align: center; }
+.stat-icon { font-size: 20px; margin-bottom: 4px; }
+.stat-val { font-size: 26px; font-weight: 800; }
+.stat-label { font-size: 11px; color: #6B7280; }
+.empty-card { background: #0D1120; border: 1px solid #1E2535; border-radius: 16px; padding: 40px; text-align: center; }
+.results-card { background: #0D1120; border: 1px solid #1E2535; border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+.section-title { font-size: 13px; font-weight: 700; color: #9CA3AF; padding: 14px 20px; border-bottom: 1px solid #1E2535; text-transform: uppercase; letter-spacing: 0.5px; }
+.tx-row { padding: 14px 20px; border-bottom: 1px solid #1A2030; cursor: pointer; }
+.tx-row:last-child { border-bottom: none; }
+.tx-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.tx-hash { font-family: monospace; font-size: 12px; color: #60A5FA; display: flex; align-items: center; gap: 8px; }
+.tx-val { font-size: 12px; font-weight: 600; }
+.badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.detail { margin-top: 12px; padding: 14px; background: #0A0E1A; border-radius: 10px; border: 1px solid #1E2535; }
+.detail-issue { padding: 10px 12px; border-radius: 8px; margin-bottom: 10px; font-size: 12px; font-weight: 600; line-height: 1.5; }
+.detail-addrs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.addr-label { font-size: 10px; color: #6B7280; }
+.addr-val { font-family: monospace; font-size: 11px; }
+.price-box { background: #141824; border: 1px solid #2D3748; border-radius: 8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.price-amount { font-size: 18px; font-weight: 800; color: #fff; }
+.price-rate { font-size: 11px; color: #6B7280; }
+.unlock-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+.unlock-btn.paid { background: linear-gradient(135deg,#3B82F6,#8B5CF6); }
+.unlock-btn.free { background: #1E2535; color: #9CA3AF; cursor: default; }
+.starter-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.starter-card { background: #0D1120; border: 1px solid #1E2535; border-radius: 12px; padding: 20px; text-align: center; }
+@media (min-width: 600px) { .starter-grid { grid-template-columns: repeat(4, 1fr); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">🔍</div>
+  <div>
+    <div class="title">CryptoRescue</div>
+    <div class="subtitle">SCANNER DE TRANSACTIONS</div>
+  </div>
+  <div class="networks" id="networks"></div>
+</div>
+
+<div class="container">
+  <div class="search-card">
+    <div class="search-title">Analysez votre wallet</div>
+    <div class="search-sub">ETH · BNB · Polygon · Solana — détection des fonds bloqués ou perdus</div>
+    <div class="search-row">
+      <input type="text" id="addrInput" class="search-input" placeholder="0x... ou adresse Solana">
+      <button id="scanBtn" class="scan-btn" onclick="scanWallet()">🔍 Scanner</button>
+    </div>
+    <div id="errorMsg" class="error-msg" style="display:none"></div>
+    <div id="progressWrap" class="progress-wrap" style="display:none">
+      <div class="progress-label">
+        <span style="color:#6B7280" id="progressLabel">Analyse en cours...</span>
+        <span id="progressPct" style="color:#3B82F6">0%</span>
+      </div>
+      <div class="progress-bar"><div id="progressFill" class="progress-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div id="resultsArea"></div>
+</div>
+
+<script>
+const BACKEND = "https://le-pumpfun-ikri.vercel.app/api/scan";
+
+const NETWORKS = [
+  { id:"eth", name:"Ethereum", chainId:1, color:"#627EEA", icon:"⟠", symbol:"ETH", type:"evm" },
+  { id:"bsc", name:"BNB Chain", chainId:56, color:"#F0B90B", icon:"⬡", symbol:"BNB", type:"evm" },
+  { id:"polygon", name:"Polygon", chainId:137, color:"#8247E5", icon:"⬟", symbol:"MATIC", type:"evm" },
+  { id:"solana", name:"Solana", chainId:null, color:"#14F195", icon:"◎", symbol:"SOL", type:"solana" },
+];
+
+const DEAD_EVM = ["0x000000000000000000000000000000000000dead","0x0000000000000000000000000000000000000000"];
+const DEAD_SOL = ["1nc1nerator11111111111111111111111111111111","11111111111111111111111111111111"];
+
+const KNOWN_CONTRACTS = new Set([
+  "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+  "0xe592427a0aece92de3edee1f18e0157c05861564",
+  "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45",
+  "0x10ed43c718714eb63d5aa57b78b54704e256024e",
+  "0x1111111254eeb25477b68fb85ed929f73a960582",
+  "0x11111112542d85b3ef69ae05771c2dccff4faa26",
+  "0xdef1c0ded9bec7f1a1670819833240f027b25eff",
+]);
+
+const PRICE_CACHE = {};
+const COINGECKO_IDS = { ETH:"ethereum", BNB:"binancecoin", MATIC:"matic-network", SOL:"solana" };
+
+let currentResults = null;
+let openIdx = null;
+
+function fmtAddr(addr) {
+  if (!addr) return "—";
+  return addr.slice(0,6) + "..." + addr.slice(-4);
+}
+function fmtVal(val, decimals=18) {
+  const n = parseFloat(val)/Math.pow(10,decimals);
+  return n < 0.0001 ? "<0.0001" : n.toFixed(4);
+}
+
+function isSolanaAddr(addr) {
+  return addr.length >= 32 && addr.length <= 44 && !addr.startsWith("0x");
+}
+
+async function isContract(address, chainId) {
+  try {
+    const url = `${BACKEND}?address=${address}&chainId=${chainId}&type=code`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return !!(data.result && data.result !== "0x" && data.result !== "0x0");
+  } catch { return false; }
+}
+
+async function getPriceEUR(symbol) {
+  if (PRICE_CACHE[symbol] !== undefined) return PRICE_CACHE[symbol];
+  try {
+    const id = COINGECKO_IDS[symbol];
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=eur`);
+    const data = await res.json();
+    const price = data[id]?.eur || 0;
+    PRICE_CACHE[symbol] = price;
+    return price;
+  } catch { return 0; }
+}
+
+function calcPrice(amountEUR) {
+  if (amountEUR < 50) return { price: 0, label: "Gratuit", rate: "—" };
+  if (amountEUR < 10000) return { price: Math.round(amountEUR*0.20), rate: "20%" };
+  if (amountEUR < 200000) return { price: Math.round(amountEUR*0.15), rate: "15%" };
+  return { price: Math.round(amountEUR*0.12), rate: "12%" };
+}
+
+function initNetworks() {
+  const div = document.getElementById("networks");
+  NETWORKS.forEach(n => {
+    const tag = document.createElement("div");
+    tag.className = "net-tag";
+    tag.style.background = n.color + "20";
+    tag.style.color = n.color;
+    tag.style.border = `1px solid ${n.color}40`;
+    tag.innerHTML = `${n.icon} ${n.name}`;
+    div.appendChild(tag);
+  });
+  renderStarter();
+}
+
+function renderStarter() {
+  document.getElementById("resultsArea").innerHTML = `
+    <div class="starter-grid">
+      ${NETWORKS.map(n => `
+        <div class="starter-card">
+          <div style="font-size:28px;margin-bottom:8px">${n.icon}</div>
+          <div style="font-size:14px;font-weight:600;color:${n.color}">${n.name}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+async function scanWallet() {
+  const address = document.getElementById("addrInput").value.trim();
+  const errorMsg = document.getElementById("errorMsg");
+  const progressWrap = document.getElementById("progressWrap");
+  const progressLabel = document.getElementById("progressLabel");
+  const scanBtn = document.getElementById("scanBtn");
+  const input = document.getElementById("addrInput");
+
+  if (!address || address.length < 10) {
+    errorMsg.textContent = "⚠ Entrez une adresse wallet valide";
+    errorMsg.style.display = "block";
+    input.classList.add("error");
+    return;
+  }
+  errorMsg.style.display = "none";
+  input.classList.remove("error");
+  scanBtn.disabled = true;
+  scanBtn.textContent = "Scan...";
+  progressWrap.style.display = "block";
+  document.getElementById("resultsArea").innerHTML = "";
+
+  const allTxs = {};
+  const sol = isSolanaAddr(address);
+  const nets = sol ? NETWORKS.filter(n=>n.type==="solana") : NETWORKS.filter(n=>n.type==="evm");
+
+  progressLabel.textContent = "Récupération des transactions...";
+  for (let i=0; i<nets.length; i++) {
+    const net = nets[i];
+    const pct = Math.round(((i+1)/nets.length)*30);
+    document.getElementById("progressPct").textContent = pct + "%";
+    document.getElementById("progressFill").style.width = pct + "%";
+    try {
+      let url, res, data;
+      if (net.type === "solana") {
+        url = `${BACKEND}?address=${address}&type=solana`;
+        res = await fetch(url);
+        data = await res.json();
+        allTxs[net.id] = data.success ? (data.data||[]) : [];
+      } else {
+        url = `${BACKEND}?address=${address}&chainId=${net.chainId}`;
+        res = await fetch(url);
+        data = await res.json();
+        allTxs[net.id] = data.status === "1" ? (data.result||[]) : [];
+      }
+    } catch { allTxs[net.id] = []; }
+  }
+
+  const lost = [];
+  const stuck = [];
+  const totalTxs = Object.values(allTxs).reduce((s,a)=>s+a.length,0);
+
+  const stuckCandidates = [];
+  for (const net of nets) {
+    const txs = allTxs[net.id] || [];
+    for (const tx of txs) {
+      if (net.type === "solana") {
+        for (const instr of (tx.parsedInstruction || [])) {
+          if (instr.type === "transfer" && DEAD_SOL.includes(instr.params?.destination)) {
+            lost.push({ tx, net, message: "Envoyé vers une adresse de burn Solana — fonds détruits définitivement, aucune récupération possible." });
+          }
+        }
+      } else {
+        const value = parseFloat(tx.value)/1e18;
+        const to = (tx.to||"").toLowerCase();
+        if (DEAD_EVM.includes(to)) {
+          lost.push({ tx, net, message: "Envoyé vers une adresse burn officielle (0x000...dead) — fonds détruits définitivement par la blockchain elle-même. Aucune récupération possible, pour personne." });
+        } else if (tx.isError !== "1" && value > 0.001 && to && !KNOWN_CONTRACTS.has(to)) {
+          stuckCandidates.push({ tx, net, value });
+        }
+      }
+    }
+  }
+
+  progressLabel.textContent = "Vérification des contrats...";
+  const checked = new Set();
+  const toCheck = stuckCandidates.slice(0, 15);
+  for (let i=0; i<toCheck.length; i++) {
+    const pct = 30 + Math.round(((i+1)/Math.max(toCheck.length,1))*40);
+    document.getElementById("progressPct").textContent = pct + "%";
+    document.getElementById("progressFill").style.width = pct + "%";
+    const c = toCheck[i];
+    const to = (c.tx.to||"").toLowerCase();
+    const key = to + "_" + c.net.chainId;
+    if (checked.has(key)) continue;
+    checked.add(key);
+    const contract = await isContract(to, c.net.chainId);
+    if (contract) {
+      stuck.push({ tx: c.tx, net: c.net, value: c.value, message: `Cette transaction de ${fmtVal(c.tx.value)} ${c.net.symbol} a été envoyée vers un smart contract qui n'est pas un protocole connu (DEX/échange). Les fonds peuvent être bloqués dans ce contrat. Une analyse technique du contrat est nécessaire pour déterminer s'il existe une fonction de retrait.` });
+    }
+  }
+
+  progressLabel.textContent = "Calcul des prix...";
+  document.getElementById("progressPct").textContent = "90%";
+  document.getElementById("progressFill").style.width = "90%";
+  const symbolsNeeded = new Set(stuck.map(s => s.net.symbol));
+  for (const sym of symbolsNeeded) {
+    const priceEUR = await getPriceEUR(sym);
+    for (const item of stuck) {
+      if (item.net.symbol === sym) {
+        item.valueEUR = item.value * priceEUR;
+        item.pricing = calcPrice(item.valueEUR);
+      }
+    }
+  }
+
+  document.getElementById("progressPct").textContent = "100%";
+  document.getElementById("progressFill").style.width = "100%";
+
+  currentResults = { lost, stuck, totalTxs, networksScanned: nets.length };
+
+  scanBtn.disabled = false;
+  scanBtn.textContent = "🔍 Scanner";
+  progressWrap.style.display = "none";
+  openIdx = null;
+  renderResults();
+}
+function renderResults() {
+  const r = currentResults;
+  if (!r) return;
+  const totalIssues = r.lost.length + r.stuck.length;
+
+  let html = `<div class="stats">
+    <div class="stat"><div class="stat-icon">🌐</div><div class="stat-val">${r.networksScanned}</div><div class="stat-label">Réseaux</div></div>
+    <div class="stat"><div class="stat-icon">📊</div><div class="stat-val">${r.totalTxs}</div><div class="stat-label">Transactions</div></div>
+    <div class="stat"><div class="stat-icon">🚨</div><div class="stat-val" style="color:${totalIssues>0?'#E53E3E':'#E8EAF0'}">${totalIssues}</div><div class="stat-label">Problèmes détectés</div></div>
+  </div>`;
+
+  if (totalIssues === 0) {
+    html += `<div class="empty-card">
+      <div style="font-size:48px;margin-bottom:12px">✅</div>
+      <div style="font-size:18px;font-weight:600;margin-bottom:8px">Aucun problème détecté</div>
+      <div style="color:#6B7280;font-size:14px">${r.totalTxs} transactions analysées — pas de fonds bloqués ou perdus identifiés</div>
+    </div>`;
+  } else {
+
+    if (r.stuck.length > 0) {
+      html += `<div class="results-card"><div class="section-title">🔧 Fonds potentiellement récupérables (${r.stuck.length})</div>`;
+      r.stuck.forEach((item, idx) => {
+        const globalIdx = "stuck_" + idx;
+        const isOpen = openIdx === globalIdx;
+        html += renderRow(item, globalIdx, isOpen, "#FF6B35", "Récupérable", true);
+      });
+      html += `</div>`;
+    }
+
+    if (r.lost.length > 0) {
+      html += `<div class="results-card"><div class="section-title">☠️ Fonds perdus définitivement (${r.lost.length})</div>`;
+      r.lost.forEach((item, idx) => {
+        const globalIdx = "lost_" + idx;
+        const isOpen = openIdx === globalIdx;
+        html += renderRow(item, globalIdx, isOpen, "#E53E3E", "Perdu", false);
+      });
+      html += `</div>`;
+    }
+  }
+
+  document.getElementById("resultsArea").innerHTML = html;
+}
+function renderRow(item, globalIdx, isOpen, color, badgeLabel, paid) {
+  let html = `<div class="tx-row" onclick="toggleTx('${globalIdx}')">
+    <div class="tx-top">
+      <span class="tx-hash"><span style="color:${item.net.color}">${item.net.icon}</span>${fmtAddr(item.tx.hash||item.tx.txHash)}</span>
+      <span class="tx-val">${fmtVal(item.tx.value||0)} ${item.net.symbol}</span>
+      <span class="badge" style="background:${color}20;color:${color};border:1px solid ${color}40">${badgeLabel}</span>
+    </div>`;
+  if (isOpen) {
+    html += `<div class="detail">
+      <div class="detail-issue" style="background:${color}10;border:1px solid ${color}30;color:${color}">${item.message}</div>
+      <div class="detail-addrs">
+        <div><div class="addr-label">DE</div><div class="addr-val">${fmtAddr(item.tx.from||item.tx.signer)}</div></div>
+        <div><div class="addr-label">VERS</div><div class="addr-val">${fmtAddr(item.tx.to||"—")}</div></div>
+      </div>`;
+    if (paid) {
+      const valEUR = item.valueEUR ? item.valueEUR.toFixed(2) : "?";
+      const pricing = item.pricing || { price: 0, rate: "—" };
+      html += `<div class="price-box">
+        <div>
+          <div class="price-amount">${pricing.price}€</div>
+          <div class="price-rate">Guide de récupération (${pricing.rate} de ~${valEUR}€ détectés)</div>
+        </div>
+      </div>
+      <button class="unlock-btn paid" onclick="event.stopPropagation()">🔓 Débloquer le guide — ${pricing.price}€</button>`;
+    } else {
+      html += `<button class="unlock-btn free" onclick="event.stopPropagation()">ℹ️ Information gratuite — rien à débloquer</button>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function toggleTx(idx) {
+  openIdx = openIdx === idx ? null : idx;
+  renderResults();
+}
+
+document.getElementById("addrInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") scanWallet();
+});
+
+initNetworks();
+</script>
+</body>
+</html>
