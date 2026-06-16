@@ -1,0 +1,280 @@
+{
+  "name": "blast-radar",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^5.0.0"
+  }
+}
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+});
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BlastRadar</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET");
+
+  try {
+    const response = await fetch(
+      "https://frontend-api.pump.fun/coins?offset=0&limit=50&sort=last_trade_timestamp&order=DESC&includeNsfw=false",
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+          Accept: "application/json",
+        },
+      }
+    );
+    const data = await response.json();
+    res.status(200).json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+}
+import { useState, useEffect, useRef, useCallback } from "react";
+
+const VOLUME_THRESHOLD = 1_000_000;
+const BLAST_THRESHOLD = 10_000_000;
+const PUMP_API = "/api/pump";
+
+function formatVolume(v) {
+  if (v >= 1_000_000_000) return `$${(v / 1_000_000_000).toFixed(2)}B`;
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}M`;
+  if (v >= 1_000) return `$${(v / 1_000).toFixed(1)}K`;
+  return `$${v.toFixed(0)}`;
+}
+
+function formatMC(v) {
+  if (!v) return "—";
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}M`;
+  if (v >= 1_000) return `$${(v / 1_000).toFixed(1)}K`;
+  return `$${v.toFixed(0)}`;
+}
+
+function timeSince(ts) {
+  const diff = Math.floor((Date.now() - ts * 1000) / 1000);
+  if (diff < 60) return `${diff}s`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  return `${Math.floor(diff / 3600)}h`;
+}
+
+function scoreToken(token) {
+  let score = 0;
+  const vol = token.usd_market_cap || 0;
+  if (vol > 50_000_000) score += 50;
+  else if (vol > 10_000_000) score += 35;
+  else if (vol > 1_000_000) score += 20;
+  const replies = token.reply_count || 0;
+  if (replies > 500) score += 30;
+  else if (replies > 100) score += 20;
+  else if (replies > 20) score += 10;
+  const recency = (Date.now() - token.last_trade_timestamp * 1000) / 1000;
+  if (recency < 300) score += 20;
+  else if (recency < 1800) score += 10;
+  return Math.min(score, 99);
+}
+
+export default function BlastRadar() {
+  const [tokens, setTokens] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [filter, setFilter] = useState("all");
+  const prevIds = useRef(new Set());
+
+  const fetchTokens = useCallback(async () => {
+    try {
+      const res = await fetch(PUMP_API);
+      if (!res.ok) throw new Error("API pump.fun inaccessible");
+      const data = await res.json();
+
+      const filtered = data
+        .filter((t) => (t.usd_market_cap || 0) >= VOLUME_THRESHOLD)
+        .map((t) => ({ ...t, score: scoreToken(t) }))
+        .sort((a, b) => (b.usd_market_cap || 0) - (a.usd_market_cap || 0));
+
+      filtered.forEach((t) => {
+        if ((t.usd_market_cap || 0) >= BLAST_THRESHOLD && !prevIds.current.has(t.mint)) {
+          setAlerts((prev) => [
+            { id: t.mint, name: t.name, symbol: t.symbol, mc: t.usd_market_cap, time: Date.now() },
+            ...prev.slice(0, 9),
+          ]);
+          prevIds.current.add(t.mint);
+        }
+      });
+
+      setTokens(filtered);
+      setLastUpdate(new Date());
+      setLoading(false);
+      setError(null);
+    } catch (e) {
+      setError(e.message);
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTokens();
+    const interval = setInterval(fetchTokens, 15000);
+    return () => clearInterval(interval);
+  }, [fetchTokens]);
+
+  const displayed = filter === "blast"
+    ? tokens.filter((t) => (t.usd_market_cap || 0) >= BLAST_THRESHOLD)
+    : filter === "hot"
+    ? tokens.filter((t) => t.score >= 50)
+    : tokens;
+
+  return (
+    <div style={{ background: "#030712", minHeight: "100vh", fontFamily: "'Space Grotesk', 'Inter', sans-serif", color: "#f1f5f9" }}>
+      {/* Header */}
+      <div style={{ background: "linear-gradient(180deg, #0f0f1a 0%, #030712 100%)", borderBottom: "1px solid #1e293b", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ width: 36, height: 36, background: "linear-gradient(135deg, #f97316, #ef4444)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>💥</div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.5px", lineHeight: 1 }}>BlastRadar</div>
+            <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>pump.fun · live</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: error ? "#ef4444" : "#22c55e", boxShadow: error ? "0 0 6px #ef4444" : "0 0 8px #22c55e", animation: error ? "none" : "pulse 2s infinite" }} />
+          <span style={{ fontSize: 12, color: "#64748b" }}>
+            {error ? "Erreur" : lastUpdate ? `MAJ ${lastUpdate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "Connexion..."}
+          </span>
+        </div>
+      </div>
+
+      {/* Alerts */}
+      {alerts.length > 0 && (
+        <div style={{ background: "linear-gradient(90deg, rgba(239,68,68,0.15), rgba(249,115,22,0.1))", borderBottom: "1px solid rgba(239,68,68,0.3)", padding: "10px 20px", overflowX: "auto", whiteSpace: "nowrap" }}>
+          <span style={{ color: "#ef4444", fontWeight: 700, fontSize: 12, marginRight: 12 }}>🚨 BLAST</span>
+          {alerts.map((a) => (
+            <span key={a.id} style={{ display: "inline-block", background: "rgba(239,68,68,0.2)", border: "1px solid rgba(239,68,68,0.4)", borderRadius: 6, padding: "3px 10px", marginRight: 8, fontSize: 12, color: "#fca5a5" }}>
+              ${a.symbol} · {formatVolume(a.mc)}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Stats */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1px", background: "#1e293b", borderBottom: "1px solid #1e293b" }}>
+        {[
+          { label: "Détectés", value: tokens.length, color: "#f1f5f9" },
+          { label: "BLAST $10M+", value: tokens.filter(t => (t.usd_market_cap||0) >= BLAST_THRESHOLD).length, color: "#f97316" },
+          { label: "Score 50+", value: tokens.filter(t => t.score >= 50).length, color: "#a78bfa" },
+        ].map((s) => (
+          <div key={s.label} style={{ background: "#030712", padding: "12px 16px", textAlign: "center" }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: s.color }}>{s.value}</div>
+            <div style={{ fontSize: 10, color: "#475569", marginTop: 2 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: "flex", gap: 8, padding: "12px 16px", borderBottom: "1px solid #0f172a" }}>
+        {[
+          { key: "all", label: "Tous $1M+" },
+          { key: "blast", label: "💥 $10M+" },
+          { key: "hot", label: "🔥 Score 50+" },
+        ].map((f) => (
+          <button key={f.key} onClick={() => setFilter(f.key)} style={{ padding: "6px 14px", borderRadius: 20, border: filter === f.key ? "1px solid #f97316" : "1px solid #1e293b", background: filter === f.key ? "rgba(249,115,22,0.15)" : "transparent", color: filter === f.key ? "#f97316" : "#64748b", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* List */}
+      <div style={{ padding: "8px 12px" }}>
+        {loading && <div style={{ textAlign: "center", padding: "60px 20px", color: "#475569" }}><div style={{ fontSize: 32, marginBottom: 12 }}>📡</div><div>Connexion à pump.fun...</div></div>}
+        {error && <div style={{ margin: "20px 0", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 12, padding: "20px", textAlign: "center" }}><div style={{ fontSize: 28, marginBottom: 8 }}>⚠️</div><div style={{ color: "#fca5a5", fontSize: 14 }}>{error}</div></div>}
+        {displayed.map((token) => {
+          const mc = token.usd_market_cap || 0;
+          const isBlast = mc >= BLAST_THRESHOLD;
+          const score = token.score;
+          const scoreColor = score >= 70 ? "#f97316" : score >= 50 ? "#a78bfa" : score >= 30 ? "#22c55e" : "#64748b";
+          return (
+            <div key={token.mint} onClick={() => window.open(`https://pump.fun/${token.mint}`, "_blank")} style={{ background: isBlast ? "linear-gradient(135deg, rgba(239,68,68,0.08), rgba(249,115,22,0.05))" : "#0a0f1e", border: isBlast ? "1px solid rgba(249,115,22,0.3)" : "1px solid #0f172a", borderRadius: 14, padding: "14px 16px", marginBottom: 8, cursor: "pointer" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 10, overflow: "hidden", flexShrink: 0, background: "#1e293b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+                  {token.image_uri ? <img src={token.image_uri} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "🪙"}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontWeight: 700, fontSize: 15 }}>{token.symbol || "???"}</span>
+                    {isBlast && <span style={{ background: "linear-gradient(90deg, #ef4444, #f97316)", color: "white", fontSize: 9, fontWeight: 800, padding: "2px 6px", borderRadius: 4 }}>BLAST</span>}
+                    <span style={{ color: "#475569", fontSize: 11, marginLeft: "auto" }}>{timeSince(token.last_trade_timestamp)}</span>
+                  </div>
+                  <div style={{ color: "#64748b", fontSize: 12, marginBottom: 8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{token.name}</div>
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 10, color: "#475569" }}>Market Cap</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: isBlast ? "#f97316" : "#22c55e" }}>{formatMC(mc)}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, color: "#475569" }}>Replies</div>
+                      <div style={{ fontSize: 14, fontWeight: 700 }}>{token.reply_count || 0}</div>
+                    </div>
+                    <div style={{ marginLeft: "auto" }}>
+                      <div style={{ fontSize: 10, color: "#475569", textAlign: "right" }}>Score</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: scoreColor, textAlign: "right" }}>{score}</div>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 8, height: 3, background: "#0f172a", borderRadius: 2, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${score}%`, background: `linear-gradient(90deg, ${scoreColor}88, ${scoreColor})`, borderRadius: 2 }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {!loading && (
+        <div style={{ padding: "12px 16px 32px" }}>
+          <button onClick={fetchTokens} style={{ width: "100%", padding: "14px", background: "#0a0f1e", border: "1px solid #1e293b", borderRadius: 12, color: "#64748b", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            🔄 Actualiser
+          </button>
+        </div>
+      )}
+
+      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
+    </div>
+  );
+}
+blastRadar/
+├── api/
+│   └── pump.js
+├── src/
+│   ├── main.jsx
+│   └── App.jsx
+├── index.html
+├── package.json
+└── vite.config.js
