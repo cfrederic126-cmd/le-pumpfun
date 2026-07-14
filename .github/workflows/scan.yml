@@ -1,0 +1,38 @@
+name: Scan crypto retest
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install requests
+
+      - run: python scanner_triangle_retest.py --limit 40 --interval 1d
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      - name: Sauvegarder la memoire des alertes
+        run: |
+          git config user.name "epicradar-bot"
+          git config user.email "actions@github.com"
+          if [ -f scanner_state.json ]; then
+            git add scanner_state.json
+            git diff --staged --quiet || git commit -m "update scanner state"
+            git push
+          else
+            echo "Rien a sauvegarder (Telegram non configure ou aucun setup detecte)."
+          fi
