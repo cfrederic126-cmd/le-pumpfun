@@ -2,22 +2,34 @@
   "ALLOUSDT": "casse-sans-retest",
   "LTCUSDT": "casse-sans-retest",
   "ob:USDCUSDT:ACHAT": "active",
+  "ob:BTCUSDT:ACHAT": "active",
+  "ob:ZECUSDT:ACHAT": "active",
   "ob:FDUSDUSDT:VENTE": "active",
+  "ob:ALLOUSDT:ACHAT": "active",
   "ob:HOMEUSDT:ACHAT": "active",
-  "ob:BONKUSDT:ACHAT": "active",
+  "ob:ZBTUSDT:ACHAT": "active",
   "wallsnap:USDCUSDT": {},
-  "wallsnap:BTCUSDT": {},
+  "wallsnap:BTCUSDT": {
+    "bid": {
+      "price": 64528.69,
+      "qty": 93.51752
+    }
+  },
   "wallsnap:ETHUSDT": {},
   "wallsnap:KITEUSDT": {
     "bid": {
-      "price": 0.1089,
-      "qty": 506390.0
+      "price": 0.111,
+      "qty": 488284.4
+    },
+    "ask": {
+      "price": 0.115,
+      "qty": 552943.6
     }
   },
   "wallsnap:USD1USDT": {
     "bid": {
       "price": 0.9985,
-      "qty": 9000194.0
+      "qty": 10215703.0
     },
     "ask": {
       "price": 1.00099,
@@ -27,121 +39,99 @@
   "wallsnap:ZECUSDT": {
     "bid": {
       "price": 550.0,
-      "qty": 2313.717
+      "qty": 2313.798
     }
   },
   "wallsnap:SOLUSDT": {},
   "wallsnap:BNBUSDT": {},
   "wallsnap:REUSDT": {},
   "wallsnap:BANKUSDT": {
+    "bid": {
+      "price": 0.1092,
+      "qty": 183821.2
+    },
     "ask": {
-      "price": 0.1105,
-      "qty": 190701.8
+      "price": 0.1127,
+      "qty": 186282.1
     }
   },
   "wallsnap:RLUSDUSDT": {
     "bid": {
       "price": 1.0005,
-      "qty": 4305629.0
+      "qty": 4300900.0
     },
     "ask": {
       "price": 1.0009,
-      "qty": 4101430.0
+      "qty": 4039257.0
     }
   },
   "wallsnap:XRPUSDT": {},
   "wallsnap:ONDOUSDT": {
     "ask": {
       "price": 0.3531,
-      "qty": 317091.9
+      "qty": 229591.9
     }
   },
-  "wallsnap:DEXEUSDT": {
-    "ask": {
-      "price": 36.5,
-      "qty": 732.38
-    }
-  },
-  "wallsnap:TRUMPUSDT": {},
-  "wallsnap:SYNUSDT": {},
   "wallsnap:TRXUSDT": {},
+  "wallsnap:DEXEUSDT": {},
+  "wallsnap:SYNUSDT": {},
+  "wallsnap:TRUMPUSDT": {},
+  "wallsnap:LTCUSDT": {
+    "ask": {
+      "price": 47.23,
+      "qty": 2151.871
+    }
+  },
   "wallsnap:FDUSDUSDT": {
     "ask": {
       "price": 0.9981,
-      "qty": 4681709.0
-    }
-  },
-  "wallsnap:LTCUSDT": {
-    "bid": {
-      "price": 46.91,
-      "qty": 2129.78
-    },
-    "ask": {
-      "price": 47.76,
-      "qty": 2115.762
+      "qty": 4756515.0
     }
   },
   "wallsnap:ADAUSDT": {},
   "wallsnap:NEARUSDT": {},
-  "wallsnap:XECUSDT": {},
-  "wallsnap:WLDUSDT": {},
-  "wallsnap:ALLOUSDT": {},
-  "wallsnap:DOGEUSDT": {},
-  "wallsnap:AAVEUSDT": {},
-  "wallsnap:HOMEUSDT": {
-    "bid": {
-      "price": 0.0072,
-      "qty": 9159334.0
+  "wallsnap:XECUSDT": {
+    "ask": {
+      "price": 9.54e-06,
+      "qty": 970690670.0
     }
   },
+  "wallsnap:WLDUSDT": {},
+  "wallsnap:ALLOUSDT": {},
+  "wallsnap:AAVEUSDT": {},
+  "wallsnap:HOMEUSDT": {},
   "wallsnap:UTKUSDT": {},
+  "wallsnap:DOGEUSDT": {},
+  "wallsnap:OPNUSDT": {},
   "wallsnap:SNDKBUSDT": {
     "ask": {
       "price": 1354.0,
       "qty": 61.2685
     }
   },
-  "wallsnap:OPNUSDT": {},
-  "wallsnap:UUSDT": {},
   "wallsnap:UNIUSDT": {},
+  "wallsnap:UUSDT": {},
   "wallsnap:LINKUSDT": {},
+  "wallsnap:TONUSDT": {},
   "wallsnap:PEPEUSDT": {
-    "bid": {
-      "price": 2.7e-06,
-      "qty": 88609498469.0
-    },
     "ask": {
       "price": 2.78e-06,
-      "qty": 109220236536.0
+      "qty": 114508544069.0
     }
   },
-  "wallsnap:TONUSDT": {},
   "wallsnap:SUIUSDT": {},
   "wallsnap:BONKUSDT": {
     "bid": {
-      "price": 2.7e-06,
-      "qty": 12195648807.0
-    },
-    "ask": {
-      "price": 2.75e-06,
-      "qty": 4093823302.0
+      "price": 2.77e-06,
+      "qty": 9746481809.0
+    }
+  },
+  "wallsnap:ZBTUSDT": {
+    "bid": {
+      "price": 0.0983,
+      "qty": 994072.0
     }
   },
   "wallsnap:TAOUSDT": {},
-  "wallsnap:XAUTUSDT": {
-    "bid": {
-      "price": 3975.82,
-      "qty": 125.7603
-    }
-  },
-  "wallsnap:TOWNSUSDT": {
-    "bid": {
-      "price": 0.00206,
-      "qty": 11470224.0
-    },
-    "ask": {
-      "price": 0.0021,
-      "qty": 7887271.0
-    }
-  }
+  "wallsnap:XAUTUSDT": {}
 }
