@@ -2,22 +2,30 @@
   "ALLOUSDT": "casse-sans-retest",
   "LTCUSDT": "retest-en-cours",
   "ob:USDCUSDT:ACHAT": "active",
+  "ob:ONDOUSDT:ACHAT": "active",
   "ob:FDUSDUSDT:VENTE": "active",
-  "ob:HOMEUSDT:ACHAT": "active",
-  "wallsnap:USDCUSDT": {},
+  "ob:SUIUSDT:ACHAT": "active",
+  "ob:TLMUSDT:ACHAT": "active",
+  "ob:BONKUSDT:ACHAT": "active",
   "wallsnap:BTCUSDT": {},
-  "wallsnap:ETHUSDT": {},
-  "wallsnap:KITEUSDT": {
+  "wallsnap:USDCUSDT": {
     "bid": {
-      "price": 0.1117,
-      "qty": 505393.6
-    },
-    "ask": {
-      "price": 0.1153,
-      "qty": 474957.0
+      "price": 1.00059,
+      "qty": 48201326.0
     }
   },
+  "wallsnap:ETHUSDT": {},
   "wallsnap:SOLUSDT": {},
+  "wallsnap:KITEUSDT": {
+    "bid": {
+      "price": 0.11,
+      "qty": 524014.9
+    },
+    "ask": {
+      "price": 0.1138,
+      "qty": 490749.5
+    }
+  },
   "wallsnap:USD1USDT": {
     "bid": {
       "price": 0.9985,
@@ -31,100 +39,100 @@
   "wallsnap:ZECUSDT": {},
   "wallsnap:REUSDT": {},
   "wallsnap:BNBUSDT": {},
-  "wallsnap:BANKUSDT": {
-    "bid": {
-      "price": 0.1095,
-      "qty": 186707.4
-    },
-    "ask": {
-      "price": 0.113,
-      "qty": 187163.2
-    }
-  },
+  "wallsnap:BANKUSDT": {},
   "wallsnap:XRPUSDT": {},
   "wallsnap:TRXUSDT": {},
   "wallsnap:ONDOUSDT": {
-    "ask": {
-      "price": 0.3443,
-      "qty": 210916.5
-    }
-  },
-  "wallsnap:TRUMPUSDT": {},
-  "wallsnap:FDUSDUSDT": {
     "bid": {
-      "price": 0.998,
-      "qty": 654148.0
+      "price": 0.3503,
+      "qty": 654519.8
     },
     "ask": {
-      "price": 0.9983,
-      "qty": 3887462.0
+      "price": 0.3531,
+      "qty": 229607.4
     }
   },
   "wallsnap:LTCUSDT": {
     "bid": {
       "price": 46.45,
-      "qty": 2138.583
+      "qty": 2137.972
     },
     "ask": {
       "price": 47.28,
-      "qty": 2136.006
+      "qty": 2137.438
     }
   },
   "wallsnap:RLUSDUSDT": {
     "bid": {
-      "price": 1.0006,
-      "qty": 4481832.0
+      "price": 1.0007,
+      "qty": 4825275.0
     },
     "ask": {
-      "price": 1.0008,
-      "qty": 4299847.0
+      "price": 1.0009,
+      "qty": 4146338.0
     }
   },
-  "wallsnap:DEXEUSDT": {},
-  "wallsnap:XECUSDT": {},
-  "wallsnap:NEARUSDT": {
+  "wallsnap:FDUSDUSDT": {
+    "bid": {
+      "price": 0.998,
+      "qty": 729710.0
+    },
     "ask": {
-      "price": 1.954,
-      "qty": 129055.9
+      "price": 0.9983,
+      "qty": 3880316.0
     }
   },
-  "wallsnap:ALLOUSDT": {},
-  "wallsnap:SYNUSDT": {},
+  "wallsnap:TRUMPUSDT": {},
   "wallsnap:OPNUSDT": {},
+  "wallsnap:DEXEUSDT": {
+    "ask": {
+      "price": 34.773,
+      "qty": 504.0
+    }
+  },
+  "wallsnap:XECUSDT": {},
+  "wallsnap:ALLOUSDT": {},
+  "wallsnap:NEARUSDT": {},
+  "wallsnap:SYNUSDT": {},
   "wallsnap:WLDUSDT": {},
-  "wallsnap:ADAUSDT": {},
-  "wallsnap:AAVEUSDT": {},
   "wallsnap:UTKUSDT": {},
+  "wallsnap:ADAUSDT": {},
   "wallsnap:HOMEUSDT": {},
   "wallsnap:DOGEUSDT": {},
-  "wallsnap:ZBTUSDT": {},
+  "wallsnap:PEPEUSDT": {},
   "wallsnap:TOWNSUSDT": {
     "bid": {
-      "price": 0.00208,
-      "qty": 11352304.0
+      "price": 0.00215,
+      "qty": 14702913.0
     },
     "ask": {
-      "price": 0.00211,
-      "qty": 12320405.0
+      "price": 0.00218,
+      "qty": 13114640.0
     }
   },
-  "wallsnap:PEPEUSDT": {
-    "ask": {
-      "price": 2.78e-06,
-      "qty": 88400747522.0
+  "wallsnap:ZBTUSDT": {
+    "bid": {
+      "price": 0.1009,
+      "qty": 995086.7
     }
   },
   "wallsnap:TONUSDT": {},
+  "wallsnap:AAVEUSDT": {},
   "wallsnap:UUSDT": {},
-  "wallsnap:SUIUSDT": {},
-  "wallsnap:LINKUSDT": {},
-  "wallsnap:TAOUSDT": {},
-  "wallsnap:BONKUSDT": {
-    "ask": {
-      "price": 2.79e-06,
-      "qty": 7765575370.0
+  "wallsnap:SUIUSDT": {
+    "bid": {
+      "price": 0.7425,
+      "qty": 334494.7
     }
   },
-  "wallsnap:XLMUSDT": {},
-  "wallsnap:UNIUSDT": {}
+  "wallsnap:LINKUSDT": {},
+  "wallsnap:TLMUSDT": {},
+  "wallsnap:BONKUSDT": {
+    "bid": {
+      "price": 2.8e-06,
+      "qty": 16227481133.0
+    }
+  },
+  "wallsnap:TAOUSDT": {},
+  "wallsnap:XLMUSDT": {}
 }
