@@ -1,19 +1,19 @@
 {
   "BTCUSDT": "retest-en-cours",
   "ob:USDCUSDT:ACHAT": "active",
-  "ob:AEROUSDT:ACHAT": "active",
   "ob:USD1USDT:VENTE": "active",
-  "ob:BANKUSDT:VENTE": "active",
+  "ob:DEXEUSDT:ACHAT": "active",
   "ob:FDUSDUSDT:VENTE": "active",
+  "ob:REUSDT:ACHAT": "active",
   "ob:UUSDT:ACHAT": "active",
   "wallsnap:USDCUSDT": {},
   "wallsnap:BTCUSDT": {},
   "wallsnap:ETHUSDT": {},
   "wallsnap:AEROUSDT": {},
   "wallsnap:KITEUSDT": {
-    "bid": {
-      "price": 0.1112,
-      "qty": 528220.2
+    "ask": {
+      "price": 0.1155,
+      "qty": 478824.4
     }
   },
   "wallsnap:USD1USDT": {
@@ -23,94 +23,76 @@
     }
   },
   "wallsnap:SOLUSDT": {},
-  "wallsnap:BANKUSDT": {
-    "ask": {
-      "price": 0.26,
-      "qty": 219318.2
-    }
-  },
   "wallsnap:DOGEUSDT": {},
+  "wallsnap:BANKUSDT": {},
   "wallsnap:XRPUSDT": {},
   "wallsnap:ZECUSDT": {},
   "wallsnap:DEXEUSDT": {},
   "wallsnap:BNBUSDT": {},
   "wallsnap:WLFIUSDT": {},
-  "wallsnap:ZAMAUSDT": {
-    "ask": {
-      "price": 0.05625,
-      "qty": 356400.0
-    }
-  },
-  "wallsnap:SPCXBUSDT": {},
-  "wallsnap:RLUSDUSDT": {
-    "bid": {
-      "price": 1.0006,
-      "qty": 3263114.0
-    },
-    "ask": {
-      "price": 1.001,
-      "qty": 4625187.0
-    }
-  },
+  "wallsnap:ZAMAUSDT": {},
   "wallsnap:OPNUSDT": {},
   "wallsnap:FDUSDUSDT": {
     "bid": {
       "price": 0.998,
-      "qty": 1128602.0
+      "qty": 1187669.0
     }
   },
-  "wallsnap:EURUSDT": {
+  "wallsnap:RLUSDUSDT": {
     "bid": {
-      "price": 1.1382,
-      "qty": 187400.8
+      "price": 1.0006,
+      "qty": 3262323.0
     },
     "ask": {
+      "price": 1.001,
+      "qty": 4605532.0
+    }
+  },
+  "wallsnap:SPCXBUSDT": {},
+  "wallsnap:EURUSDT": {
+    "bid": {
       "price": 1.1386,
-      "qty": 163433.5
+      "qty": 146547.7
     }
   },
   "wallsnap:TRXUSDT": {},
-  "wallsnap:SNDKBUSDT": {},
-  "wallsnap:REUSDT": {},
-  "wallsnap:ENAUSDT": {},
-  "wallsnap:XAUTUSDT": {},
-  "wallsnap:UUSDT": {},
+  "wallsnap:SNDKBUSDT": {
+    "bid": {
+      "price": 1598.0,
+      "qty": 72.8028
+    }
+  },
   "wallsnap:RIFUSDT": {},
-  "wallsnap:WLDUSDT": {},
+  "wallsnap:XAUTUSDT": {},
+  "wallsnap:ENAUSDT": {
+    "bid": {
+      "price": 0.088,
+      "qty": 2124138.48
+    }
+  },
+  "wallsnap:REUSDT": {},
+  "wallsnap:UUSDT": {},
   "wallsnap:VANAUSDT": {},
-  "wallsnap:SUIUSDT": {
-    "ask": {
-      "price": 0.755,
-      "qty": 118501.6
-    }
-  },
-  "wallsnap:ONDOUSDT": {
-    "bid": {
-      "price": 0.389,
-      "qty": 367537.9
-    },
-    "ask": {
-      "price": 0.4037,
-      "qty": 175012.9
-    }
-  },
+  "wallsnap:WLDUSDT": {},
+  "wallsnap:SUIUSDT": {},
   "wallsnap:LTCUSDT": {
-    "bid": {
-      "price": 46.33,
-      "qty": 2142.782
+    "ask": {
+      "price": 47.43,
+      "qty": 2129.073
     }
   },
+  "wallsnap:ONDOUSDT": {},
   "wallsnap:NEARUSDT": {},
-  "wallsnap:ADAUSDT": {},
   "wallsnap:PAXGUSDT": {},
   "wallsnap:SYNUSDT": {},
+  "wallsnap:ADAUSDT": {},
   "wallsnap:KAITOUSDT": {},
   "wallsnap:XLMUSDT": {},
   "wallsnap:PEPEUSDT": {
     "ask": {
-      "price": 2.8e-06,
-      "qty": 62093085271.0
+      "price": 2.79e-06,
+      "qty": 72668659611.0
     }
   },
-  "wallsnap:UNIUSDT": {}
+  "wallsnap:AVAXUSDT": {}
 }
