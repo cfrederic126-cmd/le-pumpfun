@@ -2,18 +2,19 @@
   "EULUSDT": "casse-sans-retest",
   "SHIBUSDT": "casse-sans-retest",
   "AVAXUSDT": "retest-en-cours",
-  "AAVEUSDT": "casse-sans-retest",
-  "LINKUSDT": "casse-sans-retest",
+  "AAVEUSDT": "retest-en-cours",
+  "LINKUSDT": "retest-en-cours",
   "ob:USDCUSDT:ACHAT": "active",
   "ob:USD1USDT:VENTE": "active",
-  "ob:SOLUSDT:VENTE": "active",
-  "ob:ZECUSDT:VENTE": "active",
   "ob:ALLOUSDT:ACHAT": "active",
-  "ob:RIFUSDT:ACHAT": "active",
-  "wallsnap:USDCUSDT": {},
+  "wallsnap:USDCUSDT": {
+    "ask": {
+      "price": 1.00094,
+      "qty": 5071378.0
+    }
+  },
   "wallsnap:BTCUSDT": {},
   "wallsnap:ETHUSDT": {},
-  "wallsnap:DEXEUSDT": {},
   "wallsnap:USD1USDT": {
     "ask": {
       "price": 1.00099,
@@ -21,108 +22,92 @@
     }
   },
   "wallsnap:SOLUSDT": {},
+  "wallsnap:DEXEUSDT": {},
   "wallsnap:VANAUSDT": {},
-  "wallsnap:EULUSDT": {},
+  "wallsnap:ZECUSDT": {},
+  "wallsnap:BANKUSDT": {
+    "ask": {
+      "price": 0.3922,
+      "qty": 45478.6
+    }
+  },
   "wallsnap:SHIBUSDT": {},
   "wallsnap:BNBUSDT": {},
+  "wallsnap:FDUSDUSDT": {
+    "ask": {
+      "price": 0.999,
+      "qty": 2352348.0
+    }
+  },
   "wallsnap:DOGEUSDT": {},
   "wallsnap:PEPEUSDT": {
     "bid": {
-      "price": 2.96e-06,
-      "qty": 55932013689.0
-    },
-    "ask": {
-      "price": 3e-06,
-      "qty": 68764545758.0
-    }
-  },
-  "wallsnap:BANKUSDT": {
-    "bid": {
-      "price": 0.375,
-      "qty": 95757.5
-    },
-    "ask": {
-      "price": 0.3845,
-      "qty": 47457.0
-    }
-  },
-  "wallsnap:ZECUSDT": {},
-  "wallsnap:EURUSDT": {
-    "bid": {
-      "price": 1.14,
-      "qty": 172131.7
-    },
-    "ask": {
-      "price": 1.1403,
-      "qty": 131882.1
-    }
-  },
-  "wallsnap:FDUSDUSDT": {
-    "ask": {
-      "price": 0.9986,
-      "qty": 2167427.0
-    }
-  },
-  "wallsnap:XRPUSDT": {},
-  "wallsnap:XAUTUSDT": {
-    "ask": {
-      "price": 4119.85,
-      "qty": 121.3637
+      "price": 2.9e-06,
+      "qty": 136516219971.0
     }
   },
   "wallsnap:ESPUSDT": {},
-  "wallsnap:AEROUSDT": {},
-  "wallsnap:AAVEUSDT": {},
-  "wallsnap:WLDUSDT": {},
-  "wallsnap:RLUSDUSDT": {
+  "wallsnap:EULUSDT": {},
+  "wallsnap:EURUSDT": {
     "bid": {
-      "price": 1.0009,
-      "qty": 4565158.0
+      "price": 1.1412,
+      "qty": 151386.1
     },
     "ask": {
-      "price": 1.0011,
-      "qty": 6023421.0
+      "price": 1.1415,
+      "qty": 143843.8
+    }
+  },
+  "wallsnap:XRPUSDT": {},
+  "wallsnap:AEROUSDT": {},
+  "wallsnap:XAUTUSDT": {},
+  "wallsnap:AAVEUSDT": {
+    "ask": {
+      "price": 100.99,
+      "qty": 674.242
+    }
+  },
+  "wallsnap:ZAMAUSDT": {
+    "ask": {
+      "price": 0.05591,
+      "qty": 594093.0
     }
   },
   "wallsnap:TRXUSDT": {},
-  "wallsnap:ZAMAUSDT": {
+  "wallsnap:WLDUSDT": {},
+  "wallsnap:KAITOUSDT": {},
+  "wallsnap:RLUSDUSDT": {
     "bid": {
-      "price": 0.05774,
-      "qty": 595025.0
+      "price": 1.0008,
+      "qty": 4793534.0
     },
     "ask": {
-      "price": 0.05889,
-      "qty": 594088.0
+      "price": 1.0013,
+      "qty": 4320633.0
     }
   },
-  "wallsnap:KAITOUSDT": {},
-  "wallsnap:LTCUSDT": {},
   "wallsnap:UNIUSDT": {
     "ask": {
-      "price": 3.95,
-      "qty": 35587.11
+      "price": 3.99,
+      "qty": 42497.81
     }
   },
-  "wallsnap:ALLOUSDT": {},
-  "wallsnap:TAOUSDT": {},
-  "wallsnap:ONDOUSDT": {
+  "wallsnap:LTCUSDT": {
     "ask": {
-      "price": 0.4115,
-      "qty": 175213.6
+      "price": 47.86,
+      "qty": 2132.215
     }
   },
-  "wallsnap:AVAXUSDT": {},
-  "wallsnap:RIFUSDT": {},
-  "wallsnap:UTKUSDT": {},
+  "wallsnap:ONDOUSDT": {},
+  "wallsnap:TAOUSDT": {},
   "wallsnap:LINKUSDT": {},
-  "wallsnap:PUMPUSDT": {},
-  "wallsnap:DIAUSDT": {
-    "bid": {
-      "price": 0.1355,
-      "qty": 116656.9
-    }
-  },
+  "wallsnap:DIAUSDT": {},
   "wallsnap:NEARUSDT": {},
   "wallsnap:LPTUSDT": {},
-  "wallsnap:SUIUSDT": {}
+  "wallsnap:PUMPUSDT": {},
+  "wallsnap:UTKUSDT": {},
+  "wallsnap:ENAUSDT": {},
+  "wallsnap:SUIUSDT": {},
+  "wallsnap:AVAXUSDT": {},
+  "wallsnap:ALLOUSDT": {}
 }
