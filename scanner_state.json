@@ -10,11 +10,11 @@
   "POLUSDT": "casse-sans-retest",
   "BCHUSDT": "casse-sans-retest",
   "ob:ZECUSDT:ACHAT": "active",
-  "ob:XLMUSDT:ACHAT": "active",
-  "ob:AAVEUSDT:ACHAT": "active",
+  "ob:RLUSDUSDT:VENTE": "active",
   "ob:ACEUSDT:ACHAT": "active",
   "ob:FDUSDUSDT:VENTE": "active",
-  "ob:EURUSDT:VENTE": "active",
+  "ob:DASHUSDT:ACHAT": "active",
+  "ob:EURUSDT:ACHAT": "active",
   "wallsnap:USDCUSDT": {
     "ask": {
       "price": 1.0009,
@@ -29,20 +29,6 @@
     "bid": {
       "price": 799.42,
       "qty": 1243.351
-    },
-    "ask": {
-      "price": 810.0,
-      "qty": 344.872
-    }
-  },
-  "wallsnap:PYTHUSDT": {
-    "bid": {
-      "price": 0.0508,
-      "qty": 988296.8
-    },
-    "ask": {
-      "price": 0.05204,
-      "qty": 540721.4
     }
   },
   "wallsnap:USD1USDT": {
@@ -53,66 +39,88 @@
   },
   "wallsnap:TRUMPUSDT": {
     "bid": {
-      "price": 2.44,
-      "qty": 35857.626
+      "price": 2.497,
+      "qty": 29085.808
     },
     "ask": {
-      "price": 2.52,
-      "qty": 36441.847
+      "price": 2.55,
+      "qty": 35832.238
     }
   },
   "wallsnap:REUSDT": {},
   "wallsnap:BNBUSDT": {},
+  "wallsnap:PYTHUSDT": {
+    "ask": {
+      "price": 0.05149,
+      "qty": 547884.7
+    }
+  },
   "wallsnap:DOGEUSDT": {},
-  "wallsnap:PUMPUSDT": {},
-  "wallsnap:PEPEUSDT": {},
-  "wallsnap:SUIUSDT": {},
+  "wallsnap:PUMPUSDT": {
+    "ask": {
+      "price": 0.00526,
+      "qty": 7031355.0
+    }
+  },
+  "wallsnap:PEPEUSDT": {
+    "ask": {
+      "price": 4e-06,
+      "qty": 105941703649.0
+    }
+  },
   "wallsnap:TUTUSDT": {},
+  "wallsnap:SUIUSDT": {},
   "wallsnap:ENAUSDT": {},
   "wallsnap:LINKUSDT": {
     "bid": {
       "price": 11.2,
-      "qty": 16048.75
+      "qty": 16539.67
     }
   },
   "wallsnap:NEARUSDT": {},
   "wallsnap:ADAUSDT": {},
   "wallsnap:UNIUSDT": {},
-  "wallsnap:XLMUSDT": {},
   "wallsnap:RLUSDUSDT": {
     "bid": {
       "price": 1.0002,
-      "qty": 6572483.0
+      "qty": 6615780.0
     },
     "ask": {
       "price": 1.0004,
-      "qty": 4484494.0
+      "qty": 4075696.0
     }
   },
+  "wallsnap:XLMUSDT": {},
   "wallsnap:TRXUSDT": {},
   "wallsnap:AAVEUSDT": {
-    "bid": {
-      "price": 121.0,
-      "qty": 522.894
+    "ask": {
+      "price": 126.0,
+      "qty": 908.962
     }
   },
   "wallsnap:ACEUSDT": {},
-  "wallsnap:WLDUSDT": {},
   "wallsnap:LTCUSDT": {
     "ask": {
-      "price": 52.0,
-      "qty": 11750.861
+      "price": 52.58,
+      "qty": 3879.982
     }
   },
+  "wallsnap:WLDUSDT": {},
   "wallsnap:AVAXUSDT": {},
+  "wallsnap:ONDOUSDT": {
+    "ask": {
+      "price": 0.3675,
+      "qty": 200444.7
+    }
+  },
   "wallsnap:TAOUSDT": {
     "bid": {
-      "price": 216.1,
-      "qty": 529.4674
+      "price": 218.4,
+      "qty": 543.3556
     },
     "ask": {
-      "price": 223.6,
-      "qty": 537.2846
+      "price": 227.0,
+      "qty": 3907.6565
     }
   },
   "wallsnap:FDUSDUSDT": {
@@ -121,43 +129,36 @@
       "qty": 3496193.0
     }
   },
-  "wallsnap:ONDOUSDT": {
-    "ask": {
-      "price": 0.3646,
-      "qty": 200293.8
-    }
-  },
   "wallsnap:UUSDT": {},
-  "wallsnap:POLUSDT": {},
-  "wallsnap:DASHUSDT": {},
-  "wallsnap:EURUSDT": {
-    "ask": {
-      "price": 1.2285,
-      "qty": 223618.8
+  "wallsnap:DASHUSDT": {
+    "bid": {
+      "price": 39.8,
+      "qty": 2572.176
     }
   },
+  "wallsnap:EURUSDT": {
+    "bid": {
+      "price": 1.1717,
+      "qty": 77752.4
+    },
+    "ask": {
+      "price": 1.172,
+      "qty": 54902.9
+    }
+  },
+  "wallsnap:POLUSDT": {},
   "wallsnap:XPLUSDT": {
     "ask": {
-      "price": 0.09275,
-      "qty": 841915.8
-    }
-  },
-  "wallsnap:WLFIUSDT": {
-    "ask": {
-      "price": 0.0585,
-      "qty": 1106864.5
-    }
-  },
-  "wallsnap:ASTERUSDT": {
-    "ask": {
-      "price": 0.648,
-      "qty": 122312.51
+      "price": 0.09446,
+      "qty": 835800.8
     }
   },
   "wallsnap:BCHUSDT": {
     "bid": {
-      "price": 266.9,
-      "qty": 204.499
+      "price": 269.2,
+      "qty": 193.18
     }
-  }
+  },
+  "wallsnap:WLFIUSDT": {},
+  "wallsnap:ASTERUSDT": {}
 }
