@@ -8,22 +8,21 @@
   "PYTHUSDT": "casse-sans-retest",
   "PENGUUSDT": "casse-sans-retest",
   "AVAXUSDT": "retest-en-cours",
+  "ob:BTCUSDT:ACHAT": "active",
+  "ob:ZECUSDT:ACHAT": "active",
+  "ob:TUTUSDT:ACHAT": "active",
   "ob:FDUSDUSDT:VENTE": "active",
+  "ob:PROMUSDT:VENTE": "active",
   "wallsnap:USDCUSDT": {
     "ask": {
       "price": 1.0009,
-      "qty": 25065400.0
+      "qty": 20065410.0
     }
   },
   "wallsnap:BTCUSDT": {},
   "wallsnap:ETHUSDT": {},
   "wallsnap:XRPUSDT": {},
-  "wallsnap:SOLUSDT": {
-    "ask": {
-      "price": 98.0,
-      "qty": 15401.221
-    }
-  },
+  "wallsnap:SOLUSDT": {},
   "wallsnap:ZECUSDT": {},
   "wallsnap:USD1USDT": {
     "ask": {
@@ -32,118 +31,111 @@
     }
   },
   "wallsnap:PYTHUSDT": {},
+  "wallsnap:BNBUSDT": {},
   "wallsnap:TRUMPUSDT": {
+    "bid": {
+      "price": 2.472,
+      "qty": 42702.823
+    },
     "ask": {
-      "price": 2.564,
-      "qty": 39193.248
+      "price": 2.529,
+      "qty": 41343.741
     }
   },
-  "wallsnap:BNBUSDT": {},
   "wallsnap:DOGEUSDT": {},
   "wallsnap:SUIUSDT": {},
   "wallsnap:TUTUSDT": {},
-  "wallsnap:ENAUSDT": {
-    "bid": {
-      "price": 0.1619,
-      "qty": 1381867.95
-    }
-  },
-  "wallsnap:NEARUSDT": {
-    "ask": {
-      "price": 2.042,
-      "qty": 90276.4
-    }
-  },
-  "wallsnap:AAVEUSDT": {
-    "ask": {
-      "price": 138.1,
-      "qty": 358.743
-    }
-  },
+  "wallsnap:ENAUSDT": {},
+  "wallsnap:NEARUSDT": {},
+  "wallsnap:AAVEUSDT": {},
   "wallsnap:PUMPUSDT": {},
-  "wallsnap:PEPEUSDT": {},
-  "wallsnap:UNIUSDT": {},
+  "wallsnap:PEPEUSDT": {
+    "bid": {
+      "price": 4.09e-06,
+      "qty": 93712470712.0
+    },
+    "ask": {
+      "price": 4.15e-06,
+      "qty": 56352208298.0
+    }
+  },
   "wallsnap:PENGUUSDT": {
     "ask": {
-      "price": 0.009764,
-      "qty": 19800000.0
+      "price": 0.00973,
+      "qty": 13605783.0
     }
   },
-  "wallsnap:ADAUSDT": {
-    "ask": {
-      "price": 0.23,
-      "qty": 724310.4
-    }
-  },
+  "wallsnap:UNIUSDT": {},
+  "wallsnap:ADAUSDT": {},
+  "wallsnap:LINKUSDT": {},
   "wallsnap:TAOUSDT": {
     "bid": {
-      "price": 238.6,
-      "qty": 545.2423
-    },
-    "ask": {
-      "price": 247.0,
-      "qty": 586.9903
+      "price": 236.8,
+      "qty": 525.224
     }
   },
-  "wallsnap:LINKUSDT": {},
-  "wallsnap:REUSDT": {},
   "wallsnap:RLUSDUSDT": {
     "bid": {
-      "price": 1.0003,
-      "qty": 6928586.0
+      "price": 1.0002,
+      "qty": 6603070.0
     },
     "ask": {
-      "price": 1.0004,
-      "qty": 5116201.0
+      "price": 1.0012,
+      "qty": 2976926.0
     }
   },
+  "wallsnap:REUSDT": {},
+  "wallsnap:SNDKBUSDT": {},
+  "wallsnap:XPLUSDT": {
+    "ask": {
+      "price": 0.10053,
+      "qty": 834990.0
+    }
+  },
+  "wallsnap:XLMUSDT": {},
   "wallsnap:FDUSDUSDT": {
     "ask": {
       "price": 1.0,
-      "qty": 3411061.0
-    }
-  },
-  "wallsnap:XPLUSDT": {
-    "ask": {
-      "price": 0.10092,
-      "qty": 849020.9
+      "qty": 3399061.0
     }
   },
   "wallsnap:WLDUSDT": {},
-  "wallsnap:XLMUSDT": {},
   "wallsnap:TRXUSDT": {},
   "wallsnap:LTCUSDT": {
     "ask": {
-      "price": 53.72,
-      "qty": 1881.959
+      "price": 52.7,
+      "qty": 4931.236
     }
   },
+  "wallsnap:UUSDT": {},
+  "wallsnap:XAUTUSDT": {},
   "wallsnap:SPKUSDT": {
     "bid": {
-      "price": 0.020865,
-      "qty": 1600000.0
+      "price": 0.020025,
+      "qty": 666667.0
     },
     "ask": {
-      "price": 0.021677,
+      "price": 0.020634,
       "qty": 1029000.0
     }
   },
   "wallsnap:ONDOUSDT": {
+    "bid": {
+      "price": 0.3759,
+      "qty": 200013.6
+    },
     "ask": {
-      "price": 0.3918,
-      "qty": 498314.9
+      "price": 0.3892,
+      "qty": 200028.7
     }
   },
-  "wallsnap:XAUTUSDT": {},
-  "wallsnap:UUSDT": {},
   "wallsnap:AVAXUSDT": {},
   "wallsnap:PAXGUSDT": {},
   "wallsnap:ASTERUSDT": {},
-  "wallsnap:PROMUSDT": {},
-  "wallsnap:DASHUSDT": {
+  "wallsnap:PROMUSDT": {
     "ask": {
-      "price": 43.25,
-      "qty": 1733.735
+      "price": 3.66,
+      "qty": 8891.43
     }
   }
 }
