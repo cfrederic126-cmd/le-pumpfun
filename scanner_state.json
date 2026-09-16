@@ -4,17 +4,31 @@
   "REZUSDT": "casse-sans-retest",
   "LSKUSDT": "retest-en-cours",
   "ob:USDCUSDT:ACHAT": "active",
-  "ob:UNIUSDT:ACHAT": "active",
+  "ob:XRPUSDT:ACHAT": "active",
+  "ob:REZUSDT:ACHAT": "active",
   "ob:FDUSDUSDT:VENTE": "active",
-  "ob:LSKUSDT:ACHAT": "active",
-  "ob:PUMPUSDT:ACHAT": "active",
-  "ob:MARSCOINUSDT:ACHAT": "active",
-  "wallsnap:USDCUSDT": {},
+  "ob:TAOUSDT:ACHAT": "active",
+  "wallsnap:USDCUSDT": {
+    "ask": {
+      "price": 1.00064,
+      "qty": 6769355.0
+    }
+  },
   "wallsnap:BTCUSDT": {},
   "wallsnap:ETHUSDT": {},
-  "wallsnap:XRPUSDT": {},
+  "wallsnap:XRPUSDT": {
+    "bid": {
+      "price": 1.286,
+      "qty": 1540255.7
+    }
+  },
   "wallsnap:SOLUSDT": {},
-  "wallsnap:ZECUSDT": {},
+  "wallsnap:ZECUSDT": {
+    "ask": {
+      "price": 1139.77,
+      "qty": 1089.137
+    }
+  },
   "wallsnap:USD1USDT": {
     "ask": {
       "price": 1.00099,
@@ -22,110 +36,107 @@
     }
   },
   "wallsnap:BNBUSDT": {},
-  "wallsnap:UNIUSDT": {},
   "wallsnap:DOGEUSDT": {},
+  "wallsnap:UNIUSDT": {
+    "bid": {
+      "price": 6.33,
+      "qty": 16118.89
+    }
+  },
   "wallsnap:RLUSDUSDT": {
     "bid": {
       "price": 1.0007,
-      "qty": 8525060.0
+      "qty": 8505444.0
     },
     "ask": {
       "price": 1.0008,
-      "qty": 8544425.0
+      "qty": 7260246.0
     }
   },
   "wallsnap:SUIUSDT": {},
   "wallsnap:REZUSDT": {},
+  "wallsnap:ARBUSDT": {},
   "wallsnap:UUSDT": {},
   "wallsnap:XLMUSDT": {},
   "wallsnap:NEARUSDT": {},
-  "wallsnap:ARBUSDT": {},
   "wallsnap:ADAUSDT": {},
   "wallsnap:ENAUSDT": {
     "bid": {
-      "price": 0.1378,
-      "qty": 1023141.73
-    },
-    "ask": {
-      "price": 0.1421,
-      "qty": 991505.03
+      "price": 0.137,
+      "qty": 1073705.97
     }
   },
   "wallsnap:TRXUSDT": {},
+  "wallsnap:LSKUSDT": {
+    "bid": {
+      "price": 0.405,
+      "qty": 20146.9
+    },
+    "ask": {
+      "price": 0.4065,
+      "qty": 54285.6
+    }
+  },
+  "wallsnap:PEPEUSDT": {},
   "wallsnap:FDUSDUSDT": {
     "bid": {
       "price": 0.998,
-      "qty": 1021923.0
+      "qty": 1022418.0
     }
   },
-  "wallsnap:LSKUSDT": {},
-  "wallsnap:PEPEUSDT": {
-    "bid": {
-      "price": 3.38e-06,
-      "qty": 70130315782.0
-    },
-    "ask": {
-      "price": 3.42e-06,
-      "qty": 129930649956.0
-    }
-  },
-  "wallsnap:LINKUSDT": {
-    "ask": {
-      "price": 11.12,
-      "qty": 14859.03
-    }
-  },
+  "wallsnap:LINKUSDT": {},
   "wallsnap:TAOUSDT": {
     "ask": {
-      "price": 222.5,
-      "qty": 526.1327
+      "price": 220.8,
+      "qty": 534.8028
     }
   },
+  "wallsnap:PUMPUSDT": {},
   "wallsnap:THEUSDT": {
     "bid": {
-      "price": 0.0656,
-      "qty": 306700.8
+      "price": 0.0655,
+      "qty": 292703.2
     },
     "ask": {
       "price": 0.0669,
-      "qty": 637443.1
+      "qty": 496996.0
     }
   },
   "wallsnap:FFUSDT": {
     "bid": {
-      "price": 0.13625,
-      "qty": 124856.8
-    },
-    "ask": {
-      "price": 0.14123,
-      "qty": 120454.1
+      "price": 0.1352,
+      "qty": 125832.8
     }
   },
-  "wallsnap:PUMPUSDT": {},
+  "wallsnap:CRCLBUSDT": {},
   "wallsnap:AVAXUSDT": {},
   "wallsnap:MARSCOINUSDT": {},
   "wallsnap:EURUSDT": {
     "bid": {
-      "price": 1.1543,
-      "qty": 150387.0
+      "price": 1.1538,
+      "qty": 135193.6
     },
     "ask": {
-      "price": 1.1548,
-      "qty": 132828.1
+      "price": 1.1543,
+      "qty": 162540.4
     }
   },
-  "wallsnap:CRCLBUSDT": {},
-  "wallsnap:\u725b\u6765USDT": {},
-  "wallsnap:FILUSDT": {
-    "bid": {
-      "price": 0.8,
-      "qty": 151996.46
-    }
-  },
-  "wallsnap:WLDUSDT": {},
-  "wallsnap:LTCUSDT": {},
   "wallsnap:PAXGUSDT": {},
+  "wallsnap:\u725b\u6765USDT": {},
+  "wallsnap:WLDUSDT": {},
   "wallsnap:SAGAUSDT": {},
-  "wallsnap:HOLOUSDT": {},
-  "wallsnap:TRUMPUSDT": {}
+  "wallsnap:LTCUSDT": {},
+  "wallsnap:FILUSDT": {},
+  "wallsnap:HOLOUSDT": {
+    "ask": {
+      "price": 0.0578,
+      "qty": 505214.5
+    }
+  },
+  "wallsnap:XAUTUSDT": {
+    "ask": {
+      "price": 4326.25,
+      "qty": 115.5736
+    }
+  }
 }
