@@ -3,27 +3,16 @@
   "BNBUSDT": "retest-en-cours",
   "LSKUSDT": "retest-en-cours",
   "AVAUSDT": "casse-sans-retest",
-  "ob:USDCUSDT:ACHAT": "active",
+  "REZUSDT": "retest-en-cours",
   "ob:UNIUSDT:ACHAT": "active",
   "ob:LSKUSDT:ACHAT": "active",
-  "ob:WLDUSDT:ACHAT": "active",
-  "ob:DASHUSDT:ACHAT": "active",
-  "ob:FDUSDUSDT:VENTE": "active",
-  "wallsnap:USDCUSDT": {
-    "ask": {
-      "price": 1.00081,
-      "qty": 7712596.0
-    }
-  },
+  "ob:ONEUSDT:ACHAT": "active",
+  "wallsnap:USDCUSDT": {},
   "wallsnap:BTCUSDT": {},
+  "wallsnap:ZECUSDT": {},
   "wallsnap:ETHUSDT": {},
-  "wallsnap:ZECUSDT": {
-    "ask": {
-      "price": 1450.0,
-      "qty": 797.806
-    }
-  },
   "wallsnap:SOLUSDT": {},
+  "wallsnap:NEARUSDT": {},
   "wallsnap:XRPUSDT": {},
   "wallsnap:USD1USDT": {
     "ask": {
@@ -31,95 +20,106 @@
       "qty": 13061778.0
     }
   },
-  "wallsnap:NEARUSDT": {},
-  "wallsnap:BNBUSDT": {},
   "wallsnap:UNIUSDT": {},
-  "wallsnap:RLUSDUSDT": {
-    "bid": {
-      "price": 1.0009,
-      "qty": 8408797.0
-    },
-    "ask": {
-      "price": 1.001,
-      "qty": 8996732.0
-    }
-  },
+  "wallsnap:BNBUSDT": {},
   "wallsnap:THEUSDT": {
     "bid": {
       "price": 0.0674,
-      "qty": 342755.3
+      "qty": 343213.9
     }
   },
-  "wallsnap:LSKUSDT": {
+  "wallsnap:RLUSDUSDT": {
+    "bid": {
+      "price": 1.0007,
+      "qty": 7293804.0
+    },
     "ask": {
-      "price": 0.4766,
-      "qty": 25447.8
+      "price": 1.0009,
+      "qty": 8836952.0
     }
   },
   "wallsnap:DOGEUSDT": {},
-  "wallsnap:SUIUSDT": {
+  "wallsnap:SUIUSDT": {},
+  "wallsnap:ARBUSDT": {},
+  "wallsnap:LSKUSDT": {
+    "bid": {
+      "price": 0.4468,
+      "qty": 41610.9
+    },
     "ask": {
-      "price": 0.735,
-      "qty": 275846.6
+      "price": 0.457,
+      "qty": 26830.8
     }
   },
   "wallsnap:ENAUSDT": {},
-  "wallsnap:XAUTUSDT": {
+  "wallsnap:WLDUSDT": {},
+  "wallsnap:FDUSDUSDT": {
     "ask": {
-      "price": 4400.07,
-      "qty": 113.6346
+      "price": 0.9991,
+      "qty": 1525549.0
     }
   },
-  "wallsnap:ARBUSDT": {},
-  "wallsnap:PAXGUSDT": {},
-  "wallsnap:WLDUSDT": {},
-  "wallsnap:CRCLBUSDT": {},
-  "wallsnap:DASHUSDT": {
+  "wallsnap:CRCLBUSDT": {
     "bid": {
-      "price": 57.9,
-      "qty": 1646.931
+      "price": 83.56,
+      "qty": 8925.56
+    },
+    "ask": {
+      "price": 86.0,
+      "qty": 6000.79
+    }
+  },
+  "wallsnap:MARSCOINUSDT": {},
+  "wallsnap:DASHUSDT": {},
+  "wallsnap:XAUTUSDT": {
+    "bid": {
+      "price": 4313.16,
+      "qty": 115.9243
+    },
+    "ask": {
+      "price": 4393.53,
+      "qty": 113.8038
     }
   },
   "wallsnap:SYNUSDT": {},
+  "wallsnap:ONEUSDT": {},
+  "wallsnap:ONDOUSDT": {
+    "ask": {
+      "price": 0.3808,
+      "qty": 350192.5
+    }
+  },
   "wallsnap:PUMPUSDT": {},
-  "wallsnap:MARSCOINUSDT": {},
-  "wallsnap:FDUSDUSDT": {},
+  "wallsnap:PAXGUSDT": {},
+  "wallsnap:UUSDT": {},
   "wallsnap:EURUSDT": {
     "bid": {
-      "price": 1.149,
-      "qty": 190431.1
+      "price": 1.1484,
+      "qty": 142732.2
     },
     "ask": {
-      "price": 1.1496,
-      "qty": 146296.5
+      "price": 1.1488,
+      "qty": 149368.9
+    }
+  },
+  "wallsnap:PEPEUSDT": {
+    "bid": {
+      "price": 3.58e-06,
+      "qty": 85207265724.0
     }
   },
   "wallsnap:ADAUSDT": {},
-  "wallsnap:PEPEUSDT": {},
-  "wallsnap:UUSDT": {},
-  "wallsnap:ONDOUSDT": {},
-  "wallsnap:ONEUSDT": {
-    "ask": {
-      "price": 0.001636,
-      "qty": 2687074.0
-    }
-  },
-  "wallsnap:LINKUSDT": {},
-  "wallsnap:SNDKBUSDT": {},
+  "wallsnap:AVAUSDT": {},
   "wallsnap:AVAXUSDT": {},
-  "wallsnap:TAOUSDT": {
-    "ask": {
-      "price": 230.3,
-      "qty": 526.5969
+  "wallsnap:SNDKBUSDT": {},
+  "wallsnap:LINKUSDT": {},
+  "wallsnap:TAOUSDT": {},
+  "wallsnap:\u725b\u6765USDT": {
+    "bid": {
+      "price": 0.105,
+      "qty": 240153.0
     }
   },
-  "wallsnap:XLMUSDT": {},
   "wallsnap:TRXUSDT": {},
-  "wallsnap:AVAUSDT": {
-    "ask": {
-      "price": 0.2978,
-      "qty": 37063.4
-    }
-  },
-  "wallsnap:\u725b\u6765USDT": {}
+  "wallsnap:REZUSDT": {}
 }
