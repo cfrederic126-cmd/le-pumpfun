@@ -7,22 +7,24 @@
   "LTCUSDT": "casse-sans-retest",
   "AVAXUSDT": "casse-sans-retest",
   "ENAUSDT": "casse-sans-retest",
+  "XLMUSDT": "casse-sans-retest",
   "ob:USDCUSDT:ACHAT": "active",
+  "ob:AVAXUSDT:VENTE": "active",
   "ob:GUSDT:ACHAT": "active",
+  "ob:APTUSDT:ACHAT": "active",
   "ob:ONEUSDT:ACHAT": "active",
-  "ob:EURUSDT:ACHAT": "active",
   "wallsnap:USDCUSDT": {},
   "wallsnap:BTCUSDT": {},
   "wallsnap:ETHUSDT": {},
-  "wallsnap:SOLUSDT": {},
   "wallsnap:ZECUSDT": {},
-  "wallsnap:XRPUSDT": {},
-  "wallsnap:NEARUSDT": {
-    "bid": {
-      "price": 3.65,
-      "qty": 104716.5
+  "wallsnap:SOLUSDT": {},
+  "wallsnap:XRPUSDT": {
+    "ask": {
+      "price": 1.48,
+      "qty": 1936125.1
     }
   },
+  "wallsnap:NEARUSDT": {},
   "wallsnap:USD1USDT": {
     "ask": {
       "price": 1.00099,
@@ -31,120 +33,85 @@
   },
   "wallsnap:UNIUSDT": {},
   "wallsnap:BNBUSDT": {},
+  "wallsnap:BANKUSDT": {},
   "wallsnap:SUIUSDT": {},
   "wallsnap:DOGEUSDT": {},
-  "wallsnap:ENAUSDT": {
-    "bid": {
-      "price": 0.1867,
-      "qty": 1033541.96
-    },
-    "ask": {
-      "price": 0.1931,
-      "qty": 1004925.1
-    }
-  },
-  "wallsnap:BANKUSDT": {
-    "ask": {
-      "price": 0.0294,
-      "qty": 3244442.3
-    }
-  },
-  "wallsnap:SPYBUSDT": {},
+  "wallsnap:ENAUSDT": {},
   "wallsnap:AVAXUSDT": {},
+  "wallsnap:SPYBUSDT": {},
   "wallsnap:PROVEUSDT": {
     "bid": {
-      "price": 0.212,
-      "qty": 89165.4
+      "price": 0.2127,
+      "qty": 225153.5
     },
     "ask": {
-      "price": 0.2162,
-      "qty": 88192.2
+      "price": 0.2199,
+      "qty": 357341.8
     }
   },
-  "wallsnap:GUSDT": {
-    "ask": {
-      "price": 0.00879,
-      "qty": 915398.0
-    }
-  },
-  "wallsnap:ARBUSDT": {},
   "wallsnap:RLUSDUSDT": {
     "bid": {
       "price": 1.0003,
-      "qty": 8399463.0
+      "qty": 8721309.0
     },
     "ask": {
       "price": 1.0004,
-      "qty": 10312932.0
+      "qty": 9294024.0
     }
   },
   "wallsnap:ADAUSDT": {},
-  "wallsnap:TAOUSDT": {
-    "bid": {
-      "price": 263.9,
-      "qty": 546.9646
-    }
-  },
+  "wallsnap:TAOUSDT": {},
+  "wallsnap:ARBUSDT": {},
+  "wallsnap:GUSDT": {},
+  "wallsnap:STRKUSDT": {},
+  "wallsnap:ARUSDT": {},
+  "wallsnap:ZAMAUSDT": {},
+  "wallsnap:APTUSDT": {},
+  "wallsnap:ONEUSDT": {},
   "wallsnap:FDUSDUSDT": {
     "ask": {
       "price": 1.0,
-      "qty": 3478385.0
+      "qty": 3483354.0
     }
   },
-  "wallsnap:LINKUSDT": {},
-  "wallsnap:APTUSDT": {},
-  "wallsnap:STRKUSDT": {},
-  "wallsnap:ARUSDT": {
+  "wallsnap:LINKUSDT": {
     "bid": {
-      "price": 4.38,
-      "qty": 14227.26
+      "price": 12.3,
+      "qty": 38710.23
+    },
+    "ask": {
+      "price": 12.6,
+      "qty": 44290.6
+    }
+  },
+  "wallsnap:LTCUSDT": {},
+  "wallsnap:FUSDT": {
+    "ask": {
+      "price": 0.00424,
+      "qty": 6049154.0
+    }
+  },
+  "wallsnap:INJUSDT": {},
+  "wallsnap:PEPEUSDT": {
+    "ask": {
+      "price": 3.85e-06,
+      "qty": 99102688817.0
     }
   },
   "wallsnap:WLDUSDT": {},
-  "wallsnap:SNDKBUSDT": {},
-  "wallsnap:INJUSDT": {},
-  "wallsnap:PEPEUSDT": {},
-  "wallsnap:LTCUSDT": {
-    "ask": {
-      "price": 57.84,
-      "qty": 1750.71
-    }
-  },
-  "wallsnap:ONEUSDT": {
-    "ask": {
-      "price": 0.00263,
-      "qty": 5346312.8
-    }
-  },
+  "wallsnap:ONDOUSDT": {},
+  "wallsnap:TRXUSDT": {},
+  "wallsnap:XLMUSDT": {},
   "wallsnap:EURUSDT": {
     "bid": {
-      "price": 1.1498,
-      "qty": 96756.3
-    }
-  },
-  "wallsnap:TRXUSDT": {},
-  "wallsnap:ZAMAUSDT": {},
-  "wallsnap:FUSDT": {
-    "bid": {
-      "price": 0.004172,
-      "qty": 5395093.0
-    }
-  },
-  "wallsnap:TRUMPUSDT": {},
-  "wallsnap:DASHUSDT": {
-    "bid": {
-      "price": 59.5,
-      "qty": 2245.055
-    }
-  },
-  "wallsnap:ONDOUSDT": {
-    "bid": {
-      "price": 0.4001,
-      "qty": 350185.7
+      "price": 1.1494,
+      "qty": 98893.5
     },
     "ask": {
-      "price": 0.4143,
-      "qty": 355790.6
+      "price": 1.1499,
+      "qty": 50793.1
     }
-  }
+  },
+  "wallsnap:DASHUSDT": {},
+  "wallsnap:UUSDT": {}
 }
